@@ -181,7 +181,7 @@ main{padding:20px 24px 56px; display:flex; flex-direction:column; gap:18px; min-
 .readout{display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); border-top:1px solid var(--line)}
 .readout div{padding:9px 16px; border-right:1px solid var(--line)}
 .readout div:last-child{border-right:0}
-.readout dt{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:0}
+.readout dt{font-size:10.5px; letter-spacing:.05em; color:var(--muted); margin:0}
 .readout dd{margin:1px 0 0; font-family:"IBM Plex Mono",monospace; font-size:14px; font-variant-numeric:tabular-nums}
 
 .grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px}
@@ -829,14 +829,14 @@ function renderTF(A){
 
   const gmdb = isFinite(A.gm)? fmt(20*Math.log10(A.gm))+' dB' : '∞';
   const rows=[
-    ['ω_c', A.wc? fmt(A.wc)+' rad/s':'brak'],
+    ['ω<sub>c</sub>', A.wc? fmt(A.wc)+' rad/s':'brak'],
     ['zapas fazy PM', A.pm===null? '—' : fmt(A.pm)+'°'],
-    ['ω_180', A.w180? fmt(A.w180)+' rad/s':'brak'],
+    ['ω<sub>180</sub>', A.w180? fmt(A.w180)+' rad/s':'brak'],
     ['zapas wzm. GM', isFinite(A.gm)? fmt(A.gm):'∞'],
     ['GM w dB', gmdb],
     ['przecięcie osi Re', A.reCross!==null? fmt(A.reCross):'brak'],
     ['okrążenia N', String(A.Ncw)],
-    [S.nu===0?'k_p (uchyb 1/(1+k_p))':'wzm. statyczne', S.nu===0? `${fmt(A.kp)} → e(∞) = ${fmt(1/(1+A.kp))}` : '∞ → e(∞) = 0'],
+    [S.nu===0?'k<sub>p</sub> (uchyb 1/(1+k<sub>p</sub>))':'wzm. statyczne', S.nu===0? `${fmt(A.kp)} → e(∞) = ${fmt(1/(1+A.kp))}` : '∞ → e(∞) = 0'],
   ];
   readout.innerHTML = rows.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
 }
