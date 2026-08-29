@@ -53,6 +53,22 @@ przeglądarki (`selftest: OK`).
 | `10/[s(s+1)(s+2)]` | ω_180 = √2 · Re = −1,67 · ω_c = 1,80 · PM = −13° · Z = 2 |
 | `−1/[s(s−1)]` | P = 1 · Z = 1 (uproszczone kryterium Bodego tu zawodzi) |
 
+## Powstanie projektu
+
+Kod powstał we współpracy z Claude (Anthropic), na podstawie specyfikacji, materiałów
+dziedzinowych i weryfikacji numerycznej autora. Wkład AI jest widoczny w historii
+repozytorium — commity noszą trailer `Co-Authored-By: Claude`.
+
+Autor odpowiada za zakres i wymagania, decyzje projektowe, dobór metod numerycznych
+oraz sprawdzenie wyników względem rozwiązań analitycznych (patrz *Kontrola poprawności*).
+
+Uwaga prawna: zgodnie z aktualnym stanem prawa autorskiego w Polsce (art. 1 ust. 1
+oraz art. 8 ust. 1 ustawy o prawie autorskim i prawach pokrewnych) i w USA
+(wytyczne Copyright Office z 2023 r., *Thaler v. Perlmutter*) fragmenty wygenerowane
+maszynowo mogą nie podlegać ochronie prawnoautorskiej. Licencja MIT obejmuje ten
+wkład autorski, który ochronie podlega; w pozostałym zakresie nie rości sobie
+uprawnień, których nie ma.
+
 ## Licencja
 
 MIT — patrz [LICENSE](LICENSE).
