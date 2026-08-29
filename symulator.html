@@ -1,0 +1,967 @@
+<title>Trzy płaszczyzny stabilności</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+
+<style>
+:root{
+  --bg:#e7ebef; --panel:#f8fafc; --panel-2:#eef2f6; --plot-bg:#fdfefe;
+  --ink:#0f151c; --muted:#5d6b7a; --line:#ccd5de; --grid:#e3e9ef;
+  --accent:#0f6d7d; --accent-soft:#93c3ca; --amber:#a75f16;
+  --bad:#bd3229; --good:#16714c; --shadow:0 1px 2px rgba(15,33,45,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1218; --panel:#141c25; --panel-2:#19232e; --plot-bg:#0f1720;
+    --ink:#dfe7ef; --muted:#8798a8; --line:#26323f; --grid:#1c2732;
+    --accent:#3fc9c0; --accent-soft:#236e6c; --amber:#e0a44a;
+    --bad:#f0685e; --good:#4fd193; --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1218; --panel:#141c25; --panel-2:#19232e; --plot-bg:#0f1720;
+  --ink:#dfe7ef; --muted:#8798a8; --line:#26323f; --grid:#1c2732;
+  --accent:#3fc9c0; --accent-soft:#236e6c; --amber:#e0a44a;
+  --bad:#f0685e; --good:#4fd193; --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:14px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance}
+button,input,select{font:inherit; color:inherit}
+
+.eyebrow{
+  font-family:"IBM Plex Sans Condensed","IBM Plex Sans",sans-serif;
+  font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--muted);
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.masthead{
+  display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  padding:18px 24px 14px; border-bottom:1px solid var(--line); background:var(--panel);
+}
+.masthead h1{
+  font-family:"IBM Plex Mono",monospace; font-size:17px; font-weight:600; letter-spacing:-.01em;
+}
+.masthead h1 span{color:var(--accent)}
+.masthead p{margin:0; color:var(--muted); font-size:12.5px; max-width:62ch}
+
+.shell{display:grid; grid-template-columns:312px minmax(0,1fr); align-items:start}
+@media (max-width:940px){.shell{grid-template-columns:1fr}}
+
+/* ---------- control rail ---------- */
+.rail{
+  border-right:1px solid var(--line); background:var(--panel);
+  padding:18px 20px 40px; display:flex; flex-direction:column; gap:22px;
+  position:sticky; top:0; max-height:100vh; overflow-y:auto;
+}
+@media (max-width:940px){.rail{position:static; max-height:none; border-right:0; border-bottom:1px solid var(--line)}}
+
+.group{display:flex; flex-direction:column; gap:9px}
+.group > .eyebrow{padding-bottom:5px; border-bottom:1px solid var(--line)}
+
+.row{display:flex; align-items:center; gap:10px; justify-content:space-between}
+.row label{color:var(--muted); font-size:12.5px}
+.val{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13px; font-weight:500}
+
+input[type=range]{
+  -webkit-appearance:none; appearance:none; width:100%; height:22px; background:transparent; cursor:pointer;
+}
+input[type=range]::-webkit-slider-runnable-track{height:3px; background:var(--line); border-radius:2px}
+input[type=range]::-moz-range-track{height:3px; background:var(--line); border-radius:2px}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:14px; height:14px; margin-top:-5.5px; border-radius:50%;
+  background:var(--accent); border:2px solid var(--panel); box-shadow:0 0 0 1px var(--accent);
+}
+input[type=range]::-moz-range-thumb{
+  width:14px; height:14px; border-radius:50%; background:var(--accent);
+  border:2px solid var(--panel); box-shadow:0 0 0 1px var(--accent);
+}
+input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:4px}
+
+input[type=number]{
+  width:100%; background:var(--plot-bg); border:1px solid var(--line); border-radius:3px;
+  padding:4px 6px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-variant-numeric:tabular-nums;
+}
+input[type=number]:focus-visible{outline:2px solid var(--accent); outline-offset:-1px}
+select{
+  background:var(--plot-bg); border:1px solid var(--line); border-radius:3px; padding:4px 6px; font-size:12.5px;
+}
+
+.seg{display:flex; border:1px solid var(--line); border-radius:3px; overflow:hidden}
+.seg button{
+  flex:1; background:var(--plot-bg); border:0; border-right:1px solid var(--line);
+  padding:5px 0; font-family:"IBM Plex Mono",monospace; font-size:12.5px; cursor:pointer;
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--panel); font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+
+.chk{display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; color:var(--muted)}
+.chk input{accent-color:var(--accent); width:14px; height:14px}
+
+/* pole / zero table */
+.pz{display:flex; flex-direction:column; gap:5px}
+.pz-head, .pz-row{display:grid; grid-template-columns:14px 58px 1fr 1fr 20px; gap:6px; align-items:center}
+.pz-head{font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding-bottom:2px}
+.pz-row.off{opacity:.42}
+.dot{width:8px; height:8px; border-radius:50%; justify-self:center}
+.pz-row .kind{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; background:var(--panel-2);
+  border:1px solid var(--line); border-radius:3px; padding:3px 4px; cursor:pointer; text-align:center;
+}
+.icon{
+  background:none; border:0; color:var(--muted); cursor:pointer; font-size:15px; line-height:1; padding:2px;
+}
+.icon:hover{color:var(--bad)}
+.add{display:flex; gap:6px}
+.add button{
+  flex:1; background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+  padding:6px 0; font-size:12px; cursor:pointer;
+}
+.add button:hover{border-color:var(--accent); color:var(--accent)}
+
+.presets{display:flex; flex-direction:column; gap:5px}
+.presets button{
+  text-align:left; background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+  padding:7px 9px; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:12px;
+}
+.presets button:hover{border-color:var(--accent); color:var(--accent)}
+.presets small{display:block; font-family:"IBM Plex Sans",sans-serif; color:var(--muted); font-size:11px; margin-top:2px}
+
+/* ---------- main ---------- */
+main{padding:20px 24px 56px; display:flex; flex-direction:column; gap:18px; min-width:0}
+
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:4px; box-shadow:var(--shadow);
+}
+.card > header{
+  display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:11px 16px; border-bottom:1px solid var(--line);
+}
+.card h2{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600}
+.card header p{margin:0; color:var(--muted); font-size:11.5px; max-width:70ch}
+
+/* transfer function strip */
+.tf{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; padding:16px; align-items:center}
+@media (max-width:760px){.tf{grid-template-columns:1fr}}
+.frac{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:"IBM Plex Mono",monospace; font-size:15px; overflow-x:auto; padding-bottom:4px;
+}
+.frac .stack{display:inline-flex; flex-direction:column; align-items:center; gap:3px}
+.frac .stack > span{padding:2px 6px; white-space:nowrap}
+.frac .stack > span:first-child{border-bottom:1.5px solid var(--ink)}
+.frac .lead{white-space:nowrap; color:var(--accent); font-weight:600}
+
+.facts{display:flex; gap:8px; flex-wrap:wrap}
+.fact{
+  border:1px solid var(--line); border-radius:3px; background:var(--panel-2);
+  padding:6px 10px; min-width:66px;
+}
+.fact b{display:block; font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600; font-variant-numeric:tabular-nums}
+.fact span{display:block; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+
+.verdict{
+  display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:3px;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; font-size:12px; border:1px solid;
+}
+.verdict::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor}
+.verdict.ok{color:var(--good); border-color:color-mix(in srgb,var(--good) 45%,transparent); background:color-mix(in srgb,var(--good) 10%,transparent)}
+.verdict.no{color:var(--bad); border-color:color-mix(in srgb,var(--bad) 45%,transparent); background:color-mix(in srgb,var(--bad) 10%,transparent)}
+
+/* readout table */
+.readout{display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); border-top:1px solid var(--line)}
+.readout div{padding:9px 16px; border-right:1px solid var(--line)}
+.readout div:last-child{border-right:0}
+.readout dt{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin:0}
+.readout dd{margin:1px 0 0; font-family:"IBM Plex Mono",monospace; font-size:14px; font-variant-numeric:tabular-nums}
+
+.grid2{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px}
+@media (max-width:1080px){.grid2{grid-template-columns:1fr}}
+
+.canvas-wrap{padding:10px 12px 12px}
+canvas{display:block; width:100%; height:100%}
+.plane{height:352px}
+.bode{height:420px}
+
+.legend{display:flex; gap:14px; flex-wrap:wrap; padding:0 16px 12px; font-size:11px; color:var(--muted)}
+.legend i{display:inline-block; width:14px; height:2px; vertical-align:middle; margin-right:5px}
+.legend .sq{width:8px; height:8px; border-radius:50%}
+
+.note{padding:0 16px 14px; font-size:11.5px; color:var(--muted); max-width:78ch}
+.note code{font-family:"IBM Plex Mono",monospace; font-size:11px; background:var(--panel-2); padding:1px 4px; border-radius:2px}
+
+footer{padding:0 24px 40px; color:var(--muted); font-size:11.5px; max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<header class="masthead">
+  <h1>Trzy płaszczyzny <span>·</span> s <span>·</span> ω <span>·</span> G(jω)</h1>
+  <p>Jedna transmitancja układu otwartego, oglądana równocześnie jako linie pierwiastkowe, charakterystyki Bodego i hodograf Nyquista. Zmień cokolwiek po lewej — wszystkie trzy widoki przeliczają się razem.</p>
+</header>
+
+<div class="shell">
+<aside class="rail">
+
+  <div class="group">
+    <div class="eyebrow">Wzmocnienie</div>
+    <div class="row"><label for="kSlider">K</label><span class="val" id="kOut">10</span></div>
+    <input type="range" id="kSlider" min="-200" max="300" step="1" value="100">
+    <label class="chk"><input type="checkbox" id="kNeg"> K &lt; 0 (minus wyciągnięty z czynników)</label>
+  </div>
+
+  <div class="group">
+    <div class="eyebrow">Astatyzm i opóźnienie</div>
+    <div class="row"><label>Rząd astatyzmu ν</label><span class="val" id="nuOut">0</span></div>
+    <div class="seg" id="nuSeg">
+      <button data-nu="0" aria-pressed="true">0</button>
+      <button data-nu="1" aria-pressed="false">1</button>
+      <button data-nu="2" aria-pressed="false">2</button>
+      <button data-nu="3" aria-pressed="false">3</button>
+    </div>
+    <div class="row"><label for="tdSlider">Opóźnienie T<sub>d</sub></label><span class="val" id="tdOut">0 s</span></div>
+    <input type="range" id="tdSlider" min="0" max="200" step="1" value="0">
+  </div>
+
+  <div class="group">
+    <div class="eyebrow">Bieguny i zera</div>
+    <div class="pz-head"><span></span><span>typ</span><span>Re</span><span>Im</span><span></span></div>
+    <div class="pz" id="pzList"></div>
+    <div class="add">
+      <button id="addPole">+ biegun</button>
+      <button id="addZero">+ zero</button>
+    </div>
+    <p class="note" style="padding:0; margin:2px 0 0">Im ≠ 0 dodaje automatycznie parę sprzężoną. Re &gt; 0 oznacza czynnik w prawej półpłaszczyźnie i zwiększa P.</p>
+  </div>
+
+  <div class="group">
+    <div class="eyebrow">Widok Nyquista</div>
+    <div class="row"><label for="zoom">Powiększenie</label><span class="val" id="zoomOut">1,0×</span></div>
+    <input type="range" id="zoom" min="-100" max="100" step="1" value="0">
+  </div>
+
+  <div class="group">
+    <div class="eyebrow">Układy wzorcowe</div>
+    <div class="presets" id="presets"></div>
+  </div>
+
+</aside>
+
+<main>
+
+  <section class="card">
+    <header>
+      <h2>Transmitancja układu otwartego</h2>
+      <p>Postać budowana z aktywnych czynników. Czynniki są sprowadzone do (s + a), znaki trafiają do K.</p>
+    </header>
+    <div class="tf">
+      <div class="frac" id="tfBox"></div>
+      <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start">
+        <div class="facts" id="factBox"></div>
+        <div id="verdictBox"></div>
+      </div>
+    </div>
+    <dl class="readout" id="readout"></dl>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <header>
+        <h2>Linie pierwiastkowe</h2>
+        <p>Wędrówka biegunów zamkniętych przy zmianie k od 0 do 4K.</p>
+      </header>
+      <div class="canvas-wrap plane"><canvas id="rlCv"></canvas></div>
+      <div class="legend">
+        <span><i style="background:var(--accent-soft)"></i>tor dla k rosnącego</span>
+        <span><i class="sq" style="background:var(--bad)"></i>bieguny zamknięte przy bieżącym K</span>
+        <span>× bieguny otwarte &nbsp; ○ zera</span>
+      </div>
+      <p class="note" id="rlNote"></p>
+    </section>
+
+    <section class="card">
+      <header>
+        <h2>Hodograf Nyquista</h2>
+        <p>Obraz pełnego konturu Cauchy'ego, z domknięciem wokół biegunów w zerze.</p>
+      </header>
+      <div class="canvas-wrap plane"><canvas id="nqCv"></canvas></div>
+      <div class="legend">
+        <span><i style="background:var(--accent)"></i>ω: 0⁺ → ∞</span>
+        <span><i style="background:var(--muted)"></i>ω: −∞ → 0⁻ (odbicie)</span>
+        <span><i style="background:var(--amber)"></i>łuk wcięcia (ν·180° CW)</span>
+        <span><i class="sq" style="background:var(--bad)"></i>punkt (−1, j0)</span>
+      </div>
+      <p class="note" id="nqNote"></p>
+    </section>
+  </div>
+
+  <section class="card">
+    <header>
+      <h2>Charakterystyki Bodego</h2>
+      <p>Moduł w dB i faza w stopniach, oś ω logarytmiczna. Linie pionowe: ω<sub>c</sub> (przecięcie 0 dB) i ω<sub>180</sub> (przecięcie −180°).</p>
+    </header>
+    <div class="canvas-wrap bode"><canvas id="bdCv"></canvas></div>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>L(ω) = 20 log|G|</span>
+      <span><i style="background:var(--amber)"></i>φ(ω)</span>
+      <span><i style="background:var(--bad)"></i>linie odniesienia 0 dB i −180°</span>
+    </div>
+    <p class="note" id="bdNote"></p>
+  </section>
+
+  <footer>
+    Kryterium: <span class="mono">Z = N + P</span>, gdzie N liczy okrążenia punktu (−1, j0) zgodnie z ruchem wskazówek zegara, P to bieguny układu otwartego z Re &gt; 0 (biegun w zerze wykluczony przez wcięcie konturu), Z to bieguny układu zamkniętego w prawej półpłaszczyźnie. Zapasy PM i GM mają sens tylko wtedy, gdy Z = 0. Opóźnienie wchodzi ściśle do Bodego i Nyquista; na liniach pierwiastkowych jest przybliżone aproksymacją Padégo pierwszego rzędu.
+  </footer>
+</main>
+</div>
+
+<script>
+/* ===================== liczby zespolone ===================== */
+const C=(re,im=0)=>({re,im});
+const csub=(a,b)=>({re:a.re-b.re, im:a.im-b.im});
+const cmul=(a,b)=>({re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re});
+const cdiv=(a,b)=>{const d=b.re*b.re+b.im*b.im; return {re:(a.re*b.re+a.im*b.im)/d, im:(a.im*b.re-a.re*b.im)/d};};
+const cabs=a=>Math.hypot(a.re,a.im);
+const carg=a=>Math.atan2(a.im,a.re);
+const cexp=a=>{const m=Math.exp(a.re); return {re:m*Math.cos(a.im), im:m*Math.sin(a.im)};};
+const DEG=180/Math.PI;
+
+/* ===================== stan ===================== */
+const S={
+  Kmag:10, Kneg:false, nu:0, Td:0, zoom:1,
+  items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]
+};
+const K=()=>S.Kneg? -S.Kmag : S.Kmag;
+
+function expand(kind){
+  const out=[];
+  for(const it of S.items) if(it.on && it.kind===kind){
+    out.push(C(it.re,it.im));
+    if(Math.abs(it.im)>1e-12) out.push(C(it.re,-it.im));
+  }
+  return out;
+}
+
+/* G_o(s) — ścisłe, z opóźnieniem */
+function Gof(s){
+  let num=C(K(),0);
+  for(const z of expand('z')) num=cmul(num,csub(s,z));
+  let den=C(1,0);
+  for(const p of expand('p')) den=cmul(den,csub(s,p));
+  for(let i=0;i<S.nu;i++) den=cmul(den,s);
+  let g=cdiv(num,den);
+  if(S.Td>0) g=cmul(g,cexp(C(-S.Td*s.re,-S.Td*s.im)));
+  return g;
+}
+
+/* moduł i faza ciągła dla ω>0 — faza liczona przez sumę wkładów (Dodatek B) */
+function resp(w){
+  const s=C(0,w);
+  let mag=Math.abs(K()), ph=(K()<0?-Math.PI:0) - S.nu*Math.PI/2 - S.Td*w;
+  for(const z of expand('z')){const d=csub(s,z); mag*=cabs(d); ph+=carg(d);}
+  for(const p of expand('p')){const d=csub(s,p); const m=cabs(d); mag/= (m||1e-300); ph-=carg(d);}
+  mag/=Math.pow(w,S.nu);
+  return {mag,ph};
+}
+
+/* ===================== wielomiany ===================== */
+const polymul=(a,b)=>{const r=new Array(a.length+b.length-1).fill(0);
+  for(let i=0;i<a.length;i++) for(let j=0;j<b.length;j++) r[i+j]+=a[i]*b[j];
+  return r;};
+function polyFrom(kind){           // rzeczywiste współczynniki, malejąco
+  let p=[1];
+  for(const it of S.items) if(it.on && it.kind===kind){
+    p = Math.abs(it.im)>1e-12
+      ? polymul(p,[1,-2*it.re, it.re*it.re+it.im*it.im])
+      : polymul(p,[1,-it.re]);
+  }
+  return p;
+}
+function polyvalC(c,s){let r=C(0,0); for(const k of c){ r=cmul(r,s); r.re+=k; } return r;}
+
+function polyRoots(a){
+  let c=a.slice();
+  while(c.length>1 && Math.abs(c[0])<1e-14) c.shift();
+  while(c.length>1 && Math.abs(c[c.length-1])<1e-14) c.pop();   // pierwiastki w zerze
+  const n=c.length-1;
+  if(n<1) return [];
+  c=c.map(v=>v/c[0]);
+  const seed=C(0.4,0.9); let cur=C(1,0); const r=[];
+  for(let i=0;i<n;i++){ r.push({re:cur.re,im:cur.im}); cur=cmul(cur,seed); }
+  for(let it=0; it<300; it++){
+    let mx=0;
+    for(let i=0;i<n;i++){
+      let den=C(1,0);
+      for(let j=0;j<n;j++) if(j!==i) den=cmul(den,csub(r[i],r[j]));
+      if(cabs(den)<1e-300) continue;
+      const d=cdiv(polyvalC(c,r[i]),den);
+      r[i]=csub(r[i],d); mx=Math.max(mx,cabs(d));
+    }
+    if(mx<1e-13) break;
+  }
+  return r;
+}
+
+/* równanie charakterystyczne D(s) + k·N(s), opóźnienie przez Padé(1,1) */
+function charRoots(k){
+  let N=polyFrom('z'), D=polyFrom('p');
+  for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
+  if(S.Td>0){ N=polymul(N,[-S.Td/2,1]); D=polymul(D,[S.Td/2,1]); }
+  const zerosPad=D.length-N.length;
+  const Np=zerosPad>=0? new Array(zerosPad).fill(0).concat(N) : N;
+  const Dp=zerosPad<0? new Array(-zerosPad).fill(0).concat(D) : D;
+  const L=Math.max(Np.length,Dp.length);
+  const poly=new Array(L).fill(0);
+  for(let i=0;i<L;i++) poly[i]=(Dp[i]||0)+k*(Np[i]||0);
+  return polyRoots(poly);
+}
+
+/* ===================== analiza ===================== */
+function bisect(f,a,b){ for(let i=0;i<70;i++){ const m=Math.sqrt(a*b); (f(a)*f(m)<=0)? b=m : a=m; } return Math.sqrt(a*b); }
+
+function analyse(){
+  const P=expand('p'), Z=expand('z');
+  const mags=[...P,...Z].map(cabs).filter(v=>v>1e-9);
+  let lo = mags.length? Math.min(...mags)/100 : 0.01;
+  let hi = mags.length? Math.max(...mags)*100 : 100;
+  if(S.Td>0) hi=Math.max(hi, 60/S.Td);
+  lo=Math.max(1e-4,Math.min(lo,1)); hi=Math.min(1e5,Math.max(hi,10*lo,100));
+
+  const M=900, w=[], mag=[], ph=[];
+  for(let i=0;i<M;i++){
+    const ww=lo*Math.pow(hi/lo,i/(M-1)); const r=resp(ww);
+    w.push(ww); mag.push(r.mag); ph.push(r.ph);
+  }
+  for(let i=1;i<M;i++){                       // rozwinięcie fazy
+    let d=ph[i]-ph[i-1];
+    while(d> Math.PI){ph[i]-=2*Math.PI; d=ph[i]-ph[i-1];}
+    while(d<-Math.PI){ph[i]+=2*Math.PI; d=ph[i]-ph[i-1];}
+  }
+
+  // ω_c : |G| = 1 (pierwsze przejście)
+  let wc=null, pm=null;
+  for(let i=1;i<M;i++){
+    if((mag[i-1]-1)*(mag[i]-1)<0){
+      wc=bisect(x=>resp(x).mag-1, w[i-1], w[i]);
+      const t=(Math.log(wc)-Math.log(w[i-1]))/(Math.log(w[i])-Math.log(w[i-1]));
+      let p=(ph[i-1]+t*(ph[i]-ph[i-1]))*DEG;
+      pm=180+p; while(pm>180)pm-=360; while(pm<=-180)pm+=360;
+      break;
+    }
+  }
+  // ω_180 : przecięcie ujemnej półosi Re, najgorsze (największe |Re|)
+  let w180=null, gm=Infinity, reCross=null;
+  for(let i=1;i<M;i++){
+    const im0=mag[i-1]*Math.sin(ph[i-1]), im1=mag[i]*Math.sin(ph[i]);
+    const re1=mag[i]*Math.cos(ph[i]);
+    if(im0*im1<0 && re1<0){
+      const f=x=>{const r=resp(x); return r.mag*Math.sin(r.ph);};
+      const ww=bisect(f,w[i-1],w[i]); const r=resp(ww);
+      const re=r.mag*Math.cos(r.ph);
+      if(re<0 && (reCross===null || Math.abs(re)>Math.abs(reCross))){ reCross=re; w180=ww; }
+    }
+  }
+  if(reCross!==null) gm=1/Math.abs(reCross);
+
+  /* --- kontur Nyquista --- */
+  const wlo=lo/50, whi=hi*20, NP=1400, NA=400;
+  const pos=[], neg=[], arc=[];
+  for(let i=0;i<NP;i++){ const ww=wlo*Math.pow(whi/wlo,i/(NP-1)); pos.push({w:ww,g:Gof(C(0,ww))}); }
+  for(let i=0;i<NP;i++){ const q=pos[NP-1-i]; neg.push({w:-q.w,g:C(q.g.re,-q.g.im)}); }
+  for(let i=0;i<NA;i++){ const th=-Math.PI/2+Math.PI*i/(NA-1); arc.push({g:Gof(C(wlo*Math.cos(th),wlo*Math.sin(th)))}); }
+
+  const path=[...neg.map(q=>q.g), ...arc.map(q=>q.g), ...pos.map(q=>q.g)];
+  let acc=0, prev=carg(C(path[0].re+1,path[0].im));
+  for(let i=1;i<path.length;i++){
+    const a=carg(C(path[i].re+1,path[i].im));
+    let d=a-prev; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    acc+=d; prev=a;
+  }
+  { const a=carg(C(path[0].re+1,path[0].im));   // domknięcie półokręgiem w ∞
+    let d=a-prev; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; acc+=d; }
+  const Ncw=Math.round(-acc/(2*Math.PI));
+  const Popen=P.filter(p=>p.re>1e-9).length;
+  const Zcl=Ncw+Popen;
+
+  const kp = S.nu===0 ? (()=>{ const g=Gof(C(1e-9,0)); return g.re; })() : Infinity;
+
+  return {lo,hi,w,mag,ph,wc,pm,w180,gm,reCross,pos,neg,arc,Ncw,P:Popen,Z:Zcl,kp,
+          poles:P,zeros:Z};
+}
+
+/* ===================== rysowanie ===================== */
+const col=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function fmt(v,d=3){
+  if(v===null||v===undefined||typeof v!=='number'||Number.isNaN(v)) return '—';
+  if(v===Infinity) return '∞'; if(v===-Infinity) return '−∞';
+  if(!isFinite(v)) return '—';
+  const a=Math.abs(v);
+  if(a>0 && (a<1e-3||a>=1e5)) return v.toExponential(1).replace('.',',').replace('e','·10^');
+  const s=(+v.toPrecision(d)).toString();
+  return s.replace('-','−').replace('.',',');
+}
+
+function prep(cv){
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth||600, h=cv.clientHeight||300;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  return {ctx,w,h};
+}
+function ticks(a,b,n){
+  const span=(b-a)/Math.max(1,n);
+  if(!(span>0)) return [a];
+  const mag=Math.pow(10,Math.floor(Math.log10(span))), nn=span/mag;
+  const step=(nn<1.5?1:nn<3?2:nn<7?5:10)*mag, out=[];
+  for(let v=Math.ceil(a/step)*step; v<=b+step*1e-9; v+=step) out.push(Math.abs(v)<step/1e6?0:v);
+  return out;
+}
+function box(ctx,r){ ctx.fillStyle=col('--plot-bg'); ctx.fillRect(r.x,r.y,r.w,r.h);
+  ctx.strokeStyle=col('--line'); ctx.lineWidth=1; ctx.strokeRect(r.x+.5,r.y+.5,r.w-1,r.h-1); }
+function clipR(ctx,r){ ctx.beginPath(); ctx.rect(r.x,r.y,r.w,r.h); ctx.clip(); }
+
+/* --- płaszczyzna zespolona (linie pierwiastkowe / Nyquist) --- */
+function planeAxes(ctx,r,rng,labels){
+  const X=v=>r.x+(v-rng.xmin)/(rng.xmax-rng.xmin)*r.w;
+  const Y=v=>r.y+r.h-(v-rng.ymin)/(rng.ymax-rng.ymin)*r.h;
+  box(ctx,r);
+  ctx.save(); clipR(ctx,r);
+  ctx.strokeStyle=col('--grid'); ctx.lineWidth=1;
+  ctx.font='10px "IBM Plex Mono", monospace'; ctx.fillStyle=col('--muted');
+  for(const t of ticks(rng.xmin,rng.xmax,7)){
+    const x=Math.round(X(t))+.5; ctx.beginPath(); ctx.moveTo(x,r.y); ctx.lineTo(x,r.y+r.h); ctx.stroke();
+  }
+  for(const t of ticks(rng.ymin,rng.ymax,5)){
+    const y=Math.round(Y(t))+.5; ctx.beginPath(); ctx.moveTo(r.x,y); ctx.lineTo(r.x+r.w,y); ctx.stroke();
+  }
+  ctx.strokeStyle=col('--line'); ctx.lineWidth=1.4;
+  const y0=Math.round(Y(0))+.5, x0=Math.round(X(0))+.5;
+  ctx.beginPath(); ctx.moveTo(r.x,y0); ctx.lineTo(r.x+r.w,y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0,r.y); ctx.lineTo(x0,r.y+r.h); ctx.stroke();
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(const t of ticks(rng.xmin,rng.xmax,7)) if(Math.abs(t)>1e-9) ctx.fillText(fmt(t,2),X(t),y0+4);
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  for(const t of ticks(rng.ymin,rng.ymax,5)) if(Math.abs(t)>1e-9) ctx.fillText(fmt(t,2),x0+5,Y(t));
+  ctx.restore();
+  ctx.fillStyle=col('--muted'); ctx.font='500 10px "IBM Plex Sans Condensed", sans-serif';
+  ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText(labels[0],r.x+r.w-4,r.y+r.h-4);
+  ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText(labels[1],r.x+5,r.y+4);
+  return {X,Y};
+}
+function fitAspect(r,rng){
+  const cx=(rng.xmin+rng.xmax)/2, cy=(rng.ymin+rng.ymax)/2;
+  const s=Math.max((rng.xmax-rng.xmin)/2/r.w,(rng.ymax-rng.ymin)/2/r.h);
+  return {xmin:cx-s*r.w, xmax:cx+s*r.w, ymin:cy-s*r.h, ymax:cy+s*r.h};
+}
+function cross(ctx,x,y,s){ ctx.beginPath(); ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s); ctx.moveTo(x-s,y+s); ctx.lineTo(x+s,y-s); ctx.stroke(); }
+function circ(ctx,x,y,s){ ctx.beginPath(); ctx.arc(x,y,s,0,7); ctx.stroke(); }
+
+/* --- linie pierwiastkowe --- */
+function drawRootLocus(A){
+  const {ctx,w,h}=prep(rlCv);
+  const r={x:38,y:12,w:w-50,h:h-30};
+  const pts=[...A.poles,...A.zeros].map(p=>({x:p.re,y:p.im}));
+  const cur=charRoots(K()); cur.forEach(p=>pts.push({x:p.re,y:p.im}));
+  let xmin=-2,xmax=1,ymin=-2,ymax=2;
+  if(pts.length){
+    xmin=Math.min(...pts.map(p=>p.x)); xmax=Math.max(...pts.map(p=>p.x));
+    ymin=Math.min(...pts.map(p=>p.y)); ymax=Math.max(...pts.map(p=>p.y));
+  }
+  const padx=Math.max(1,(xmax-xmin)*0.35), pady=Math.max(1,(ymax-ymin)*0.35);
+  let rng=fitAspect(r,{xmin:xmin-padx,xmax:xmax+padx,ymin:ymin-pady,ymax:ymax+pady});
+  const {X,Y}=planeAxes(ctx,r,rng,['Re s','Im s']);
+
+  ctx.save(); clipR(ctx,r);
+  const NK=260, kmax=4*K();
+  for(let i=1;i<=NK;i++){
+    const t=i/NK, k=kmax*t*t;
+    const rr=charRoots(k);
+    ctx.fillStyle=col('--accent-soft'); ctx.globalAlpha=.28+.5*t;
+    for(const q of rr){ ctx.beginPath(); ctx.arc(X(q.re),Y(q.im),1.5,0,7); ctx.fill(); }
+  }
+  ctx.globalAlpha=1;
+  ctx.strokeStyle=col('--muted'); ctx.lineWidth=1.4;
+  for(const p of A.poles) cross(ctx,X(p.re),Y(p.im),5);
+  for(let i=0;i<S.nu;i++) cross(ctx,X(0),Y(0),5+i*3);
+  for(const z of A.zeros) circ(ctx,X(z.re),Y(z.im),4.5);
+  ctx.strokeStyle=col('--bad'); ctx.lineWidth=2;
+  for(const q of cur) cross(ctx,X(q.re),Y(q.im),6);
+  ctx.restore();
+
+  const worst=cur.length? Math.max(...cur.map(q=>q.re)) : NaN;
+  rlNote.innerHTML = cur.length
+    ? `Przy K = ${fmt(K())} bieguny zamknięte: ${cur.map(q=>fmt(q.re,3)+(Math.abs(q.im)>1e-6?(q.im>0?' + j':' − j')+fmt(Math.abs(q.im),3):'')).join(' ; ')}. `
+      + `Największa część rzeczywista: ${fmt(worst,3)} — ${worst<0?'wszystkie w lewej półpłaszczyźnie':'co najmniej jeden w prawej półpłaszczyźnie'}.`
+    : 'Brak mianownika — dodaj co najmniej jeden biegun albo astatyzm.';
+}
+
+/* --- Nyquist --- */
+function drawNyquist(A){
+  const {ctx,w,h}=prep(nqCv);
+  const r={x:38,y:12,w:w-50,h:h-30};
+  let R=2.5;
+  if(A.reCross!==null) R=Math.max(R,1.4*Math.abs(A.reCross));
+  if(S.nu===0 && isFinite(A.kp)) R=Math.max(R,1.3*Math.abs(A.kp));
+  R/=S.zoom;
+  const rng=fitAspect(r,{xmin:-R,xmax:R,ymin:-R,ymax:R});
+  const {X,Y}=planeAxes(ctx,r,rng,['Re G(jω)','Im G(jω)']);
+
+  ctx.save(); clipR(ctx,r);
+  ctx.setLineDash([2,3]); ctx.strokeStyle=col('--line'); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(X(0),Y(0),Math.abs(X(1)-X(0)),0,7); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const line=(pts,style,dash)=>{
+    ctx.strokeStyle=style; ctx.lineWidth=dash?1.3:1.9; ctx.setLineDash(dash||[]);
+    ctx.beginPath(); let up=false;
+    for(const g of pts){
+      if(!isFinite(g.re)||!isFinite(g.im)||cabs(g)>1e7){up=false;continue;}
+      const x=X(g.re), y=Y(g.im);
+      if(!up){ctx.moveTo(x,y);up=true;} else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  line(A.neg.map(q=>q.g), col('--muted'), [4,3]);
+  line(A.arc.map(q=>q.g), col('--amber'), [5,3]);
+  line(A.pos.map(q=>q.g), col('--accent'));
+
+  // groty na gałęzi ω>0
+  ctx.fillStyle=col('--accent');
+  for(const f of [0.25,0.5,0.75]){
+    const i=Math.floor(f*(A.pos.length-1)), a=A.pos[i].g, b=A.pos[i+3].g;
+    if(cabs(a)>1e6||cabs(b)>1e6) continue;
+    const x=X(a.re), y=Y(a.im), an=Math.atan2(Y(b.im)-y,X(b.re)-x);
+    ctx.save(); ctx.translate(x,y); ctx.rotate(an);
+    ctx.beginPath(); ctx.moveTo(6,0); ctx.lineTo(-4,3.5); ctx.lineTo(-4,-3.5); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  // punkt krytyczny
+  ctx.strokeStyle=col('--bad'); ctx.lineWidth=2; cross(ctx,X(-1),Y(0),6);
+  ctx.fillStyle=col('--bad'); ctx.font='500 10px "IBM Plex Sans Condensed",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('(−1, j0)',X(-1),Y(0)-9);
+  // przecięcia
+  if(A.reCross!==null){
+    ctx.fillStyle=col('--amber'); ctx.beginPath(); ctx.arc(X(A.reCross),Y(0),3.5,0,7); ctx.fill();
+  }
+  if(A.wc){ const g=Gof(C(0,A.wc));
+    ctx.fillStyle=col('--accent'); ctx.beginPath(); ctx.arc(X(g.re),Y(g.im),3.5,0,7); ctx.fill(); }
+  ctx.restore();
+
+  nqNote.innerHTML =
+    `Okrążenia punktu (−1, j0): <b>N = ${A.Ncw}</b> (dodatnie = zgodnie z ruchem wskazówek). `
+    + `Bieguny otwarte w prawej półpłaszczyźnie: <b>P = ${A.P}</b>. `
+    + `Stąd <b>Z = N + P = ${A.Z}</b>` + (A.Z===0? ' — brak biegunów zamkniętych w prawej półpłaszczyźnie.' : ` — tyle biegunów układu zamkniętego leży w prawej półpłaszczyźnie.`)
+    + (A.reCross!==null? ` Przecięcie z osią Re: ${fmt(A.reCross)} przy ω = ${fmt(A.w180)} rad/s.` : ' Krzywa nie tnie ujemnej półosi rzeczywistej, więc GM = ∞.');
+}
+
+/* --- Bode --- */
+function drawBode(A){
+  const {ctx,w,h}=prep(bdCv);
+  const L=52, Rp=14, T=12, B=32, gap=26;
+  const H=(h-T-B-gap)/2;
+  const rm={x:L,y:T,w:w-L-Rp,h:H}, rp={x:L,y:T+H+gap,w:w-L-Rp,h:H};
+  const lgx=Math.log10(A.lo), lgh=Math.log10(A.hi);
+  const X=v=>rm.x+(Math.log10(v)-lgx)/(lgh-lgx)*rm.w;
+
+  const dB=A.mag.map(m=>20*Math.log10(Math.max(m,1e-12)));
+  const phd=A.ph.map(p=>p*DEG);
+  const yr=(arr,pad,lo,hi)=>{let a=Math.max(Math.min(...arr),lo),b=Math.min(Math.max(...arr),hi);
+    if(b-a<pad){const c=(a+b)/2;a=c-pad/2;b=c+pad/2;}
+    const m=(b-a)*0.08; return {min:a-m,max:b+m};};
+  const my=yr(dB.filter(isFinite),40,-160,160), py=yr(phd,40,-630,190);
+
+  const panel=(r,ry,unit)=>{
+    box(ctx,r);
+    const Y=v=>r.y+r.h-(v-ry.min)/(ry.max-ry.min)*r.h;
+    ctx.save(); clipR(ctx,r);
+    ctx.strokeStyle=col('--grid'); ctx.lineWidth=1;
+    for(let d=Math.floor(lgx); d<=Math.ceil(lgh); d++){
+      for(let m=1;m<10;m++){
+        const v=m*Math.pow(10,d); if(v<A.lo||v>A.hi) continue;
+        const x=Math.round(X(v))+.5;
+        ctx.globalAlpha=m===1?1:.45;
+        ctx.beginPath(); ctx.moveTo(x,r.y); ctx.lineTo(x,r.y+r.h); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+    ctx.font='10px "IBM Plex Mono",monospace'; ctx.fillStyle=col('--muted');
+    ctx.textAlign='right'; ctx.textBaseline='middle';
+    for(const t of ticks(ry.min,ry.max,5)){
+      const y=Math.round(Y(t))+.5;
+      ctx.beginPath(); ctx.moveTo(r.x,y); ctx.lineTo(r.x+r.w,y); ctx.stroke();
+    }
+    ctx.restore();
+    for(const t of ticks(ry.min,ry.max,5)) ctx.fillText(fmt(t,3),r.x-6,Y(t));
+    ctx.save(); ctx.translate(12,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif'; ctx.fillStyle=col('--muted');
+    ctx.fillText(unit,0,0); ctx.restore();
+    return Y;
+  };
+
+  const Ym=panel(rm,my,'L(ω)  [dB]');
+  const Yp=panel(rp,py,'φ(ω)  [°]');
+
+  // linie odniesienia
+  const ref=(r,Y,v)=>{ const y=Y(v);
+    if(y<r.y||y>r.y+r.h) return;
+    ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=col('--bad'); ctx.lineWidth=1.2; ctx.globalAlpha=.8;
+    ctx.beginPath(); ctx.moveTo(r.x,y+.5); ctx.lineTo(r.x+r.w,y+.5); ctx.stroke(); ctx.restore(); };
+  ref(rm,Ym,0); ref(rp,Yp,-180);
+
+  // krzywe
+  const curve=(r,Y,arr,color)=>{
+    ctx.save(); clipR(ctx,r);
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+    let up=false;
+    for(let i=0;i<A.w.length;i++){
+      if(!isFinite(arr[i])){up=false;continue;}
+      const x=X(A.w[i]), y=Y(arr[i]);
+      if(!up){ctx.moveTo(x,y);up=true;} else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.restore();
+  };
+  curve(rm,Ym,dB,col('--accent'));
+  curve(rp,Yp,phd,col('--amber'));
+
+  // pionowe znaczniki
+  const vline=(ww,label,color)=>{
+    if(!ww||ww<A.lo||ww>A.hi) return;
+    const x=Math.round(X(ww))+.5;
+    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.2; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(x,rm.y); ctx.lineTo(x,rp.y+rp.h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=color; ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top'; ctx.fillText(label,x+4,rm.y+3);
+    ctx.restore();
+  };
+  vline(A.wc,'ω_c '+fmt(A.wc),col('--accent'));
+  vline(A.w180,'ω_180 '+fmt(A.w180),col('--bad'));
+
+  // zapas fazy jako pionowy odcinek w ω_c
+  if(A.wc && A.pm!==null){
+    const x=X(A.wc), y1=Yp(-180), y2=Yp(-180+A.pm);
+    ctx.save(); clipR(ctx,rp); ctx.strokeStyle=col('--good'); ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke();
+    ctx.fillStyle=col('--good'); ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('PM '+fmt(A.pm)+'°',x+5,(y1+y2)/2);
+    ctx.restore();
+  }
+  // zapas wzmocnienia jako odcinek w ω_180
+  if(A.w180 && isFinite(A.gm)){
+    const x=X(A.w180), y1=Ym(0), y2=Ym(-20*Math.log10(A.gm));
+    ctx.save(); clipR(ctx,rm); ctx.strokeStyle=col('--good'); ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke();
+    ctx.fillStyle=col('--good'); ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('GM '+fmt(20*Math.log10(A.gm))+' dB',x+5,(y1+y2)/2);
+    ctx.restore();
+  }
+
+  // oś ω
+  ctx.fillStyle=col('--muted'); ctx.font='10px "IBM Plex Mono",monospace';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(let d=Math.ceil(lgx); d<=Math.floor(lgh); d++){
+    const v=Math.pow(10,d);
+    ctx.fillText(d===0?'1':('10'+sup(d)), X(v), rp.y+rp.h+6);
+  }
+  ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif';
+  ctx.textAlign='right'; ctx.fillText('ω  [rad/s]', rp.x+rp.w, rp.y+rp.h+19);
+
+  const minPhase = A.zeros.every(z=>z.re<=1e-9) && S.Td===0;
+  bdNote.innerHTML =
+    (A.P===0 && minPhase
+      ? `Układ otwarty stabilny (P = 0) i minimalnofazowy — uproszczone kryterium Bodego wolno stosować: `
+        + (A.pm===null? 'charakterystyka nie przecina 0 dB, więc ω<sub>c</sub> nie istnieje.'
+           : `PM = ${fmt(A.pm)}° ${A.pm>0?'> 0 ⇒ układ zamknięty stabilny.':'≤ 0 ⇒ układ zamknięty niestabilny.'}`)
+      : `<b>Uwaga:</b> P = ${A.P}${minPhase?'':' i układ nie jest minimalnofazowy (zero w prawej półpłaszczyźnie lub opóźnienie)'} — uproszczone kryterium Bodego <b>nie obowiązuje</b>. Wiążąca jest liczba okrążeń z hodografu: Z = ${A.Z}.`);
+}
+const sup=d=>String(d).replace('-','⁻').replace(/[0-9]/g,c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]);
+
+/* ===================== panel transmitancji ===================== */
+function factorText(list){
+  const out=[];
+  list.forEach((it,i)=>{
+    if(!it.on) return;
+    if(Math.abs(it.im)>1e-12){
+      const b=-2*it.re, c=it.re*it.re+it.im*it.im;
+      out.push(`(s² ${b<0?'−':'+'} ${fmt(Math.abs(b))}s ${c<0?'−':'+'} ${fmt(Math.abs(c))})`);
+    } else {
+      const a=-it.re;
+      out.push(a===0? '(s)' : `(s ${a<0?'−':'+'} ${fmt(Math.abs(a))})`);
+    }
+  });
+  return out;
+}
+function renderTF(A){
+  const zi=S.items.filter(x=>x.kind==='z'), pi=S.items.filter(x=>x.kind==='p');
+  const zt=factorText(zi), pt=factorText(pi);
+  const lead=[];
+  lead.push(fmt(K()));
+  if(S.Td>0) lead.push(`e^(−${fmt(S.Td)}s)`);
+  const num=(zt.length? zt.join('') : '1');
+  const den=(S.nu>0? (S.nu===1?'s':'s'+sup(S.nu)) : '') + (pt.length? pt.join('') : (S.nu>0?'':'1'));
+  tfBox.innerHTML =
+    `<span class="lead">G<sub>o</sub>(s) = ${lead.join(' · ')} ·</span>`
+    + `<span class="stack"><span>${num}</span><span>${den||'1'}</span></span>`;
+
+  factBox.innerHTML = [
+    ['K', fmt(K())],
+    ['T<sub>d</sub>', fmt(S.Td)+' s'],
+    ['ν', String(S.nu)],
+    ['l<sub>z</sub> / l<sub>p</sub>', `${A.zeros.length} / ${A.poles.length+S.nu}`],
+    ['P', String(A.P)],
+    ['Z', String(A.Z)],
+  ].map(([a,b])=>`<div class="fact"><b>${b}</b><span>${a}</span></div>`).join('');
+
+  verdictBox.innerHTML = A.Z===0
+    ? `<span class="verdict ok">Układ zamknięty stabilny · Z = 0</span>`
+    : `<span class="verdict no">Niestabilny · Z = ${A.Z} ${A.Z===1?'biegun':'bieguny/biegunów'} w prawej półpłaszczyźnie</span>`;
+
+  const gmdb = isFinite(A.gm)? fmt(20*Math.log10(A.gm))+' dB' : '∞';
+  const rows=[
+    ['ω_c', A.wc? fmt(A.wc)+' rad/s':'brak'],
+    ['zapas fazy PM', A.pm===null? '—' : fmt(A.pm)+'°'],
+    ['ω_180', A.w180? fmt(A.w180)+' rad/s':'brak'],
+    ['zapas wzm. GM', isFinite(A.gm)? fmt(A.gm):'∞'],
+    ['GM w dB', gmdb],
+    ['przecięcie osi Re', A.reCross!==null? fmt(A.reCross):'brak'],
+    ['okrążenia N', String(A.Ncw)],
+    [S.nu===0?'k_p (uchyb 1/(1+k_p))':'wzm. statyczne', S.nu===0? `${fmt(A.kp)} → e(∞) = ${fmt(1/(1+A.kp))}` : '∞ → e(∞) = 0'],
+  ];
+  readout.innerHTML = rows.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+}
+
+/* ===================== UI ===================== */
+const $=id=>document.getElementById(id);
+const rlCv=$('rlCv'), nqCv=$('nqCv'), bdCv=$('bdCv');
+const rlNote=$('rlNote'), nqNote=$('nqNote'), bdNote=$('bdNote');
+const tfBox=$('tfBox'), factBox=$('factBox'), verdictBox=$('verdictBox'), readout=$('readout');
+
+function renderPZ(){
+  $('pzList').innerHTML='';
+  S.items.forEach((it,i)=>{
+    const row=document.createElement('div');
+    row.className='pz-row'+(it.on?'':' off');
+    row.innerHTML=
+      `<label class="chk" style="justify-content:center"><input type="checkbox" ${it.on?'checked':''} data-a="on" data-i="${i}" title="włącz / wyłącz"></label>`
+      +`<button class="kind" data-a="kind" data-i="${i}" title="zamień biegun ⇄ zero">${it.kind==='p'?'biegun':'zero'}</button>`
+      +`<input type="number" step="0.1" value="${it.re}" data-a="re" data-i="${i}" aria-label="część rzeczywista">`
+      +`<input type="number" step="0.1" value="${it.im}" data-a="im" data-i="${i}" aria-label="część urojona">`
+      +`<button class="icon" data-a="del" data-i="${i}" title="usuń" aria-label="usuń">×</button>`;
+    $('pzList').appendChild(row);
+  });
+}
+$('pzList').addEventListener('input',e=>{
+  const t=e.target, i=+t.dataset.i, a=t.dataset.a; if(a===undefined) return;
+  if(a==='on') S.items[i].on=t.checked;
+  if(a==='re') S.items[i].re=parseFloat(t.value)||0;
+  if(a==='im') S.items[i].im=Math.abs(parseFloat(t.value)||0);
+  if(a==='on') renderPZ();
+  refresh();
+});
+$('pzList').addEventListener('click',e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  const i=+t.dataset.i;
+  if(t.dataset.a==='del') S.items.splice(i,1);
+  if(t.dataset.a==='kind') S.items[i].kind = S.items[i].kind==='p'?'z':'p';
+  renderPZ(); refresh();
+});
+$('addPole').onclick=()=>{S.items.push({kind:'p',re:-5,im:0,on:true}); renderPZ(); refresh();};
+$('addZero').onclick=()=>{S.items.push({kind:'z',re:-3,im:0,on:true}); renderPZ(); refresh();};
+
+const kFromSlider=v=>Math.pow(10,v/100);
+const sliderFromK=k=>Math.round(100*Math.log10(k));
+$('kSlider').oninput=e=>{S.Kmag=+kFromSlider(+e.target.value).toPrecision(3); refresh();};
+$('kNeg').onchange=e=>{S.Kneg=e.target.checked; refresh();};
+$('tdSlider').oninput=e=>{S.Td=+e.target.value/100; refresh();};
+$('zoom').oninput=e=>{S.zoom=Math.pow(10,+e.target.value/100); refresh();};
+$('nuSeg').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  S.nu=+b.dataset.nu;
+  [...$('nuSeg').children].forEach(x=>x.setAttribute('aria-pressed', x===b));
+  refresh();
+};
+
+const PRESETS=[
+  {t:'10 / [(s+1)(s+2)]', d:'wzorzec z instrukcji — PM 55,9°, GM ∞',
+   s:{Kmag:10,Kneg:false,nu:0,Td:0,items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]}},
+  {t:'10 / [s(s+1)(s+2)]', d:'ten sam obiekt z integratorem — Z = 2',
+   s:{Kmag:10,Kneg:false,nu:1,Td:0,items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]}},
+  {t:'−1 / [s(s−1)]', d:'P = 1 — uproszczony Bode kłamie',
+   s:{Kmag:1,Kneg:true,nu:1,Td:0,items:[{kind:'p',re:1,im:0,on:true}]}},
+  {t:'2 / (s+1)³', d:'trzy inercje — faza sięga −270°',
+   s:{Kmag:2,Kneg:false,nu:0,Td:0,items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-1,im:0,on:true}]}},
+  {t:'1 / [s(s+1)] · e^(−0,5s)', d:'opóźnienie transportowe zjada zapas fazy',
+   s:{Kmag:1,Kneg:false,nu:1,Td:0.5,items:[{kind:'p',re:-1,im:0,on:true}]}},
+  {t:'20(s+1) / [s(s²+2s+16)]', d:'para zespolona plus zero korekcyjne',
+   s:{Kmag:20,Kneg:false,nu:1,Td:0,items:[{kind:'z',re:-1,im:0,on:true},{kind:'p',re:-1,im:3.873,on:true}]}},
+];
+$('presets').innerHTML=PRESETS.map((p,i)=>`<button data-i="${i}">${p.t}<small>${p.d}</small></button>`).join('');
+$('presets').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const p=PRESETS[+b.dataset.i];
+  Object.assign(S,JSON.parse(JSON.stringify(p.s)));
+  syncControls(); renderPZ(); refresh();
+};
+
+function syncControls(){
+  $('kSlider').value=sliderFromK(S.Kmag);
+  $('kNeg').checked=S.Kneg;
+  $('tdSlider').value=Math.round(S.Td*100);
+  [...$('nuSeg').children].forEach(x=>x.setAttribute('aria-pressed', +x.dataset.nu===S.nu));
+}
+
+function refresh(){
+  $('kOut').textContent=fmt(K());
+  $('nuOut').textContent=S.nu;
+  $('tdOut').textContent=fmt(S.Td)+' s';
+  $('zoomOut').textContent=fmt(S.zoom,2)+'×';
+  const A=analyse();
+  renderTF(A); drawRootLocus(A); drawNyquist(A); drawBode(A);
+}
+
+let pending=0;
+new ResizeObserver(()=>{cancelAnimationFrame(pending); pending=requestAnimationFrame(refresh);}).observe(document.body);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',refresh);
+new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+renderPZ(); syncControls(); refresh();
+
+/* ===================== kontrola na przykładach z instrukcji ===================== */
+(function selftest(){
+  const snap=JSON.stringify(S);
+  const near=(a,b,t,n)=>{const ok=Math.abs(a-b)<t; console.assert(ok,`selftest ${n}: ${a} ≠ ${b}`); return ok;};
+  let ok=true;
+  // 10/[(s+1)(s+2)] : ω_c = 2,759 ; PM = 55,9° ; GM = ∞ ; Z = 0
+  Object.assign(S,{Kmag:10,Kneg:false,nu:0,Td:0,items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]});
+  let A=analyse();
+  ok&=near(A.wc,2.759,0.01,'wc');
+  ok&=near(A.pm,55.9,0.2,'PM');
+  ok&=near(A.Z,0,0.1,'Z');
+  ok&=near(A.kp,5,0.01,'kp');
+  // 10/[s(s+1)(s+2)] : ω_180 = √2 ; Re = −1,67 ; ω_c = 1,80 ; PM = −13° ; Z = 2
+  S.nu=1; A=analyse();
+  ok&=near(A.w180,Math.SQRT2,0.005,'w180');
+  ok&=near(A.reCross,-1.667,0.01,'Re(w180)');
+  ok&=near(A.wc,1.80,0.02,'wc astat');
+  ok&=near(A.pm,-13,0.5,'PM astat');
+  ok&=near(A.Z,2,0.1,'Z astat');
+  // 1/[s(1−s)] = −1/[s(s−1)] : P = 1, Z = 1
+  Object.assign(S,{Kmag:1,Kneg:true,nu:1,Td:0,items:[{kind:'p',re:1,im:0,on:true}]});
+  A=analyse();
+  ok&=near(A.P,1,0.1,'P nieminimalnofazowy');
+  ok&=near(A.Z,1,0.1,'Z nieminimalnofazowy');
+  Object.assign(S,JSON.parse(snap)); renderPZ(); syncControls(); refresh();
+  console.log(ok? 'selftest: OK — zgodne z Dodatkiem H instrukcji' : 'selftest: BŁĄD, patrz asercje wyżej');
+})();
+</script>
