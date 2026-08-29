@@ -16,7 +16,9 @@ z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym.
 
 ## Uruchomienie
 
-Otwórz `symulator.html` w przeglądarce. Nic więcej — brak zależności, brak budowania,
+**Wersja online: https://jerzus.github.io/trzy-plaszczyzny-stabilnosci/**
+
+Lokalnie — otwórz `index.html` w przeglądarce. Nic więcej — brak zależności, brak budowania,
 brak serwera.
 
 ## Co można ustawiać
