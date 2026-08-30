@@ -14,6 +14,26 @@ Kryterium Nyquista `Z = N + P` liczone jest numerycznie z przyrostu argumentu
 `1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
 z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym.
 
+## Tryb wyjaśnień
+
+Przełącznik **Tryb wyjaśnień** w nagłówku uaktywnia warstwę dydaktyczną. Każda wyliczona
+liczba, każdy zaznaczony punkt i każda linia na wykresie stają się klikalne i pokazują:
+
+- co dana wielkość znaczy fizycznie,
+- wzór ogólny w notacji z karty wzorów przedmiotu,
+- przebieg obliczenia rozbity na czynniki, z podstawionymi bieżącymi wartościami,
+- wynik i jego interpretację, wraz z ostrzeżeniami o warunkach stosowalności.
+
+Objęte są między innymi: `K`, `T_d`, `ν`, `P`, `Z`, `N`, `ω_c` (`ω_gc`), `ω_180` (`ω_pc`),
+zapas fazy, zapas wzmocnienia `M_g`, przecięcie z osią Re, `k_p`, bieguny i zera układu
+otwartego, bieguny układu zamkniętego (z `ζ`, `ω_n`, `M_p` i czasami ustalania), asymptoty
+i punkt `δ`, punkty rozejścia się linii, odcinki na osi rzeczywistej, obie krzywe Bodego,
+linie odniesienia 0 dB i −180°, pulsacje łamania, punkt krytyczny `(−1, j0)`, obie gałęzie
+hodografu, łuk wcięcia i okrąg jednostkowy.
+
+W tym trybie wykres linii pierwiastkowych dorysowuje też asymptoty, punkt `δ`, punkty
+rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji łamania.
+
 ## Uruchomienie
 
 **Wersja online: https://jerzus.github.io/trzy-plaszczyzny-stabilnosci/**
@@ -29,6 +49,10 @@ brak serwera.
 | rząd astatyzmu `ν` | 0 … 3 |
 | opóźnienie transportowe `T_d` | 0 … 2 s |
 | bieguny i zera | dowolna liczba, rzeczywiste lub pary sprzężone, włączane pojedynczo |
+
+Reguły geometryczne linii pierwiastkowych (odcinki na osi rzeczywistej, `α = n − m`
+asymptot, `δ = (Σpᵢ − Σzᵢ)/(n − m)`, punkty z równania `D(s)N′(s) − D′(s)N(s) = 0`)
+liczone są zgodnie z kartą wzorów przedmiotu.
 
 Sześć układów wzorcowych jest dostępnych jednym kliknięciem.
 
