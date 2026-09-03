@@ -2,17 +2,30 @@
 
 Projekt na przedmiot **Inżynieria Systemów Dynamicznych** — Politechnika Gdańska.
 
-Interaktywny symulator do analizy stabilności układów regulacji. Jedna transmitancja
-układu otwartego `G_o(s)`, oglądana równocześnie w trzech płaszczyznach:
+Interaktywny symulator do analizy i syntezy układów regulacji, podzielony na cztery
+karty w stylu kart przeglądarki:
 
-- **linie pierwiastkowe** — wędrówka biegunów układu zamkniętego przy zmianie wzmocnienia,
-- **charakterystyki Bodego** — moduł i faza, z odczytem `ω_c`, `ω_180`, `PM`, `GM`,
-- **hodograf Nyquista** — pełny obraz konturu Cauchy'ego z domknięciem wokół biegunów
-  w zerze, punktem krytycznym `(−1, j0)` i liczbą okrążeń.
-
-Kryterium Nyquista `Z = N + P` liczone jest numerycznie z przyrostu argumentu
-`1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
-z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym.
+- **Analiza częstotliwościowa** — jedna transmitancja układu otwartego `G_o(s)`,
+  oglądana równocześnie jako **linie pierwiastkowe** (wędrówka biegunów zamkniętych
+  przy zmianie wzmocnienia), **charakterystyki Bodego** (moduł i faza, z odczytem
+  `ω_c`, `ω_180`, `PM`, `GM`) i **hodograf Nyquista** (pełny obraz konturu Cauchy'ego
+  z domknięciem wokół biegunów w zerze, punktem krytycznym `(−1, j0)` i liczbą okrążeń).
+  Kryterium Nyquista `Z = N + P` liczone jest numerycznie z przyrostu argumentu
+  `1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
+  z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym.
+- **Routh–Hurwitz** — warunek konieczny (znaki współczynników) i pełna tablica Routha
+  dla bieżącego `K`, z krzyżową kontrolą względem `Z` z konturu Nyquista; oraz
+  przedziały `K`, dla których układ zamknięty jest stabilny, wyznaczone symbolicznie
+  (tablica Routha liczona jako funkcje wymierne `K`, granice — z pierwiastków liczników
+  pierwszej kolumny).
+- **Schemat blokowy** — ścieżka w przód ze zmienną kolejnością bloków (mnożenie
+  szeregowe jest przemienne — przeciągnij, żeby to sprawdzić), gałąź równoległa i
+  sprzężenie zwrotne; wypadkowe `G(s)` można przenieść jednym kliknięciem do kart
+  Analiza i Routh–Hurwitz.
+- **Model stanowy · RLC** — dwukierunkowa konwersja transmitancja ⟷ model stanowy
+  (TF→SS przez postać sterowalną, SS→TF przez algorytm Faddeeva–LeVerriera) rzędu
+  do 4, plus sześć gotowych obwodów RLC/RC/RL z automatycznym wyprowadzeniem
+  transmitancji i modelu stanowego z równań obwodu.
 
 ## Tryb wyjaśnień
 
@@ -76,6 +89,13 @@ przeglądarki (`selftest: OK`).
 | `10/[(s+1)(s+2)]` | ω_c = 2,759 · PM = 55,9° · GM = ∞ · Z = 0 |
 | `10/[s(s+1)(s+2)]` | ω_180 = √2 · Re = −1,67 · ω_c = 1,80 · PM = −13° · Z = 2 |
 | `−1/[s(s−1)]` | P = 1 · Z = 1 (uproszczone kryterium Bodego tu zawodzi) |
+
+Karta Routha–Hurwitza jest niezależną kontrolą tych samych układów: dla
+`10/[s(s+1)(s+2)]` tablica daje pierwszą kolumnę `1; 3; −4/3; 10` (dwie zmiany
+znaku, `Z = 2`) i przedział stabilności `K ∈ (0, 6)` — dokładnie tak, jak liczy
+to instrukcja źródłowa. Karta model stanowy ⟷ transmitancja jest weryfikowana
+pełnym cyklem TF → SS → TF (postać sterowalna, potem Faddeev–LeVerrier), który
+musi odtworzyć wejściowe współczynniki co do siódmego miejsca po przecinku.
 
 ## Powstanie projektu
 

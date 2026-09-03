@@ -365,6 +365,179 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
   .exp-f{font-size:12px} .exp-steps{font-size:11.5px}
   .explain-btn{margin-left:0; width:100%; justify-content:center; padding:9px 13px}
 }
+/* ---------- pasek kart (widoki symulatora) ---------- */
+.tabbar{
+  display:flex; gap:3px; padding:0 24px; background:var(--bg);
+  border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:thin;
+}
+.tabbar button{
+  appearance:none; border:1px solid var(--line); border-bottom:none; background:var(--panel-2);
+  color:var(--muted); padding:10px 18px 9px; margin-top:8px; border-radius:6px 6px 0 0; cursor:pointer;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-weight:600; font-size:12.5px; letter-spacing:.03em;
+  white-space:nowrap; position:relative; top:1px; transition:color .15s,background .15s;
+}
+.tabbar button:hover{color:var(--ink)}
+.tabbar button[aria-selected="true"]{
+  background:var(--panel); color:var(--ink); border-color:var(--line); z-index:2;
+  box-shadow:0 -1px 0 var(--panel) inset;
+}
+.tabbar button[aria-selected="true"]::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px; background:var(--panel);
+}
+.tabbar button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.tabpanel:not(.active){display:none!important}
+.tabpanel.active{display:block}
+.tab-full{padding:20px 24px 56px; flex-direction:column; gap:18px; min-width:0}
+.tabpanel.tab-full.active{display:flex}
+@media (max-width:640px){
+  .tabbar{padding:0 12px}
+  .tabbar button{padding:9px 13px 8px; font-size:11.5px}
+  .tab-full{padding:14px 12px 84px; gap:14px}
+}
+
+/* ---------- Routh--Hurwitz ---------- */
+.routh-warn{
+  margin:0 16px 14px; padding:10px 14px; border-radius:3px; font-size:12.5px; line-height:1.55;
+  background:color-mix(in srgb,var(--amber) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--amber) 40%,transparent); color:var(--ink);
+}
+.coef-row{display:flex; flex-wrap:wrap; gap:8px}
+.coef-chip{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; border:1px solid var(--line);
+  border-radius:3px; padding:6px 10px; background:var(--panel-2); display:flex; align-items:baseline; gap:6px;
+}
+.coef-chip b{font-weight:600}
+.coef-chip.ok{border-color:color-mix(in srgb,var(--good) 45%,var(--line)); color:var(--good)}
+.coef-chip.bad{border-color:color-mix(in srgb,var(--bad) 45%,var(--line)); color:var(--bad)}
+.coef-chip .lbl{color:var(--muted); font-size:11px}
+
+table.routh-table{border-collapse:collapse; font-family:"IBM Plex Mono",monospace; font-size:13px; white-space:nowrap}
+table.routh-table th, table.routh-table td{
+  padding:6px 12px; text-align:right; border-bottom:1px solid var(--grid); font-variant-numeric:tabular-nums;
+}
+table.routh-table th{color:var(--muted); font-weight:500; font-size:11px; text-align:right; letter-spacing:.04em}
+table.routh-table td.rowlab{
+  text-align:left; color:var(--muted); font-weight:600; padding-right:16px; border-right:1px solid var(--line);
+}
+table.routh-table td.piv{position:relative}
+table.routh-table td.piv.sign-pos{color:var(--good)}
+table.routh-table td.piv.sign-neg{color:var(--bad)}
+table.routh-table td.piv.sign-flip::before{
+  content:"\21c5"; position:absolute; left:-2px; color:var(--amber); font-size:11px;
+}
+table.routh-table td.eps{font-style:italic}
+table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
+
+.rng-badge{
+  display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:3px;
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; border:1px solid; margin:2px 0;
+}
+.rng-badge.ok{color:var(--good); border-color:color-mix(in srgb,var(--good) 45%,transparent); background:color-mix(in srgb,var(--good) 9%,transparent)}
+.rng-badge.no{color:var(--bad); border-color:color-mix(in srgb,var(--bad) 45%,transparent); background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.rng-list{display:flex; flex-direction:column; gap:8px}
+.rng-line{display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px}
+.rng-line .k-int{
+  font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600; color:var(--ink);
+  background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:4px 10px;
+}
+.rng-line.stable .k-int{border-color:color-mix(in srgb,var(--good) 45%,var(--line)); color:var(--good)}
+.rng-line .zbadge{color:var(--muted); font-size:11.5px}
+.axis-k{position:relative; height:34px; margin:8px 0 4px}
+.axis-k .track{position:absolute; left:0; right:0; top:15px; height:2px; background:var(--line)}
+.axis-k .seg{position:absolute; top:13px; height:6px; border-radius:3px; background:var(--good)}
+.axis-k .pt{position:absolute; top:9px; width:2px; height:14px; background:var(--muted)}
+.axis-k .zero{position:absolute; top:5px; width:1px; height:22px; background:var(--ink); opacity:.5}
+
+/* ---------- schemat blokowy ---------- */
+.bdiag{
+  display:flex; align-items:center; gap:0; padding:22px 16px 26px; overflow-x:auto;
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; min-height:88px;
+}
+.bd-node{
+  display:flex; align-items:center; justify-content:center; flex:none;
+  width:34px; height:34px; border-radius:50%; border:1.5px solid var(--line);
+  background:var(--panel-2); color:var(--ink); font-weight:600;
+}
+.bd-node.sum{font-size:16px}
+.bd-box{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  min-width:56px; padding:7px 12px; border:1.5px solid var(--accent); border-radius:4px;
+  background:color-mix(in srgb,var(--accent) 8%,var(--panel)); color:var(--ink); flex:none;
+}
+.bd-box small{color:var(--muted); font-size:10px}
+.bd-arrow{display:flex; align-items:center; color:var(--muted); flex:0 1 26px; min-width:14px}
+.bd-arrow::before{content:""; height:1.5px; background:var(--line); flex:1}
+.bd-arrow::after{content:""; width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-left:7px solid var(--muted)}
+.bd-label{font-size:10px; color:var(--muted); padding:0 4px}
+.bd-branchwrap{display:flex; flex-direction:column; align-items:stretch; flex:none}
+.bd-fbwrap{display:flex; flex-direction:column-reverse; align-items:stretch; flex:none; margin-top:-1px}
+.bd-vline{width:1.5px; background:var(--line); align-self:center; flex:none}
+.bd-hline{height:1.5px; background:var(--line); flex:1; align-self:center}
+
+.lane{
+  display:flex; align-items:center; gap:6px; padding:14px 16px; flex-wrap:wrap; min-height:52px;
+}
+.lane:empty::after{content:"(pusto)"; color:var(--muted); font-size:12px; font-style:italic}
+.blk{
+  display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--line);
+  border-radius:5px; background:var(--panel-2); cursor:grab; user-select:none;
+}
+.blk.dragging{opacity:.35}
+.blk.drop-before{box-shadow:-3px 0 0 var(--accent)}
+.blk.drop-after{box-shadow:3px 0 0 var(--accent)}
+.blk .handle{color:var(--muted); font-size:13px; letter-spacing:-1px; cursor:grab}
+.blk .ty{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:600}
+.blk .prm{display:flex; align-items:center; gap:4px; font-size:11.5px; color:var(--muted)}
+.blk .prm input{
+  width:52px; background:var(--plot-bg); border:1px solid var(--line); border-radius:3px;
+  padding:3px 5px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink);
+}
+.blk .rm{background:none; border:0; color:var(--muted); cursor:pointer; font-size:15px; padding:0 2px}
+.blk .rm:hover{color:var(--bad)}
+.lane-add{display:flex; gap:8px; align-items:center; padding:0 16px 14px; flex-wrap:wrap}
+.lane-add select{background:var(--plot-bg); border:1px solid var(--line); border-radius:3px; padding:6px 8px; font-size:12.5px}
+.lane-add button{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:3px; padding:6px 12px;
+  font-size:12px; cursor:pointer;
+}
+.lane-add button:hover{border-color:var(--accent); color:var(--accent)}
+@media (max-width:640px){
+  .bdiag{padding:16px 10px 20px}
+  .lane, .lane-add{padding-left:10px; padding-right:10px}
+}
+
+/* ---------- model stanowy ---------- */
+.mtx-block{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+.mtx-block .mtx-lbl{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); width:14px}
+.mtx-grid{display:inline-grid; gap:4px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:var(--panel-2)}
+.mtx-grid input{
+  width:52px; text-align:center; background:var(--plot-bg); border:1px solid var(--line); border-radius:3px;
+  padding:4px 3px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink);
+}
+.mtx-col{display:inline-grid; gap:4px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:var(--panel-2)}
+.mtx-scalar input{
+  width:56px; text-align:center; background:var(--plot-bg); border:1px solid var(--line); border-radius:4px;
+  padding:6px 4px; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink);
+}
+
+.rlc-fig{display:flex; align-items:center; gap:0; padding:14px 12px 8px; overflow-x:auto; min-width:max-content}
+.rlc-comp{
+  display:flex; flex-direction:column; align-items:center; gap:2px; flex:none; padding:8px 14px;
+  border:1.5px solid var(--line); border-radius:4px; background:var(--panel-2);
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; position:relative;
+}
+.rlc-comp.tap{border-color:var(--accent); background:color-mix(in srgb,var(--accent) 10%,var(--panel-2)); color:var(--ink)}
+.rlc-comp.tap::after{
+  content:"y"; position:absolute; bottom:-20px; left:50%; transform:translateX(-50%);
+  font-size:11px; color:var(--accent); font-weight:600;
+}
+.rlc-comp.tap::before{
+  content:""; position:absolute; bottom:-13px; left:50%; width:1.5px; height:10px;
+  background:var(--accent); border-left:1px dashed var(--accent);
+}
+.rlc-wire{height:1.5px; background:var(--line); flex:0 1 30px; min-width:14px}
+.rlc-term{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); padding:0 6px; flex:none}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 </style>
 
@@ -376,12 +549,19 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
   </button>
 </header>
 
+<nav class="tabbar" role="tablist" aria-label="Widoki symulatora">
+  <button role="tab" id="tabbtn-analiza" aria-controls="tabpanel-analiza" aria-selected="true" data-tab="analiza" type="button">Analiza częstotliwościowa</button>
+  <button role="tab" id="tabbtn-routh" aria-controls="tabpanel-routh" aria-selected="false" data-tab="routh" type="button">Routh–Hurwitz</button>
+  <button role="tab" id="tabbtn-block" aria-controls="tabpanel-block" aria-selected="false" data-tab="block" type="button">Schemat blokowy</button>
+  <button role="tab" id="tabbtn-ss" aria-controls="tabpanel-ss" aria-selected="false" data-tab="ss" type="button">Model stanowy · RLC</button>
+</nav>
+
 <div class="exp-hint" id="expHint" hidden>
   Tryb wyjaśnień aktywny — kliknij dowolną liczbę w panelach albo punkt, krzywą lub linię na wykresie,
   żeby zobaczyć wzór, przebieg obliczenia i znaczenie. Klikalne punkty mają kropkowaną aureolę.
 </div>
 
-<div class="shell">
+<div class="shell" id="shellAnalysis">
 <aside class="rail" id="rail">
 
   <div class="group">
@@ -429,6 +609,8 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
 </aside>
 
 <main>
+
+<section id="tabpanel-analiza" class="tabpanel active">
 
   <section class="card">
     <header>
@@ -496,8 +678,174 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
   <footer>
     Kryterium: <span class="mono">Z = N + P</span>, gdzie N liczy okrążenia punktu (−1, j0) zgodnie z ruchem wskazówek zegara, P to bieguny układu otwartego z Re &gt; 0 (biegun w zerze wykluczony przez wcięcie konturu), Z to bieguny układu zamkniętego w prawej półpłaszczyźnie. Zapasy PM i GM mają sens tylko wtedy, gdy Z = 0. Opóźnienie wchodzi ściśle do Bodego i Nyquista; na liniach pierwiastkowych jest przybliżone aproksymacją Padégo pierwszego rzędu.
   </footer>
+
+</section>
+
+<section id="tabpanel-routh" class="tabpanel">
+
+  <section class="card">
+    <header>
+      <h2>Kryterium Routha–Hurwitza</h2>
+      <p>Działa wyłącznie na wielomianowym równaniu charakterystycznym D(s) + K·N(s) = 0 — tej samej transmitancji co karta Analiza, sterowanej tym samym panelem po lewej.</p>
+    </header>
+    <div id="routhTdWarn" class="routh-warn" hidden>
+      Uwaga: T<sub>d</sub> &gt; 0. Równanie charakterystyczne z opóźnieniem nie jest wielomianem — poniższa analiza używa tego samego przybliżenia Padégo pierwszego rzędu co linie pierwiastkowe i dlatego nie jest ścisła. Kryterium Nyquista w karcie Analiza pozostaje dokładne.
+    </div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Warunek konieczny</h2>
+      <p>Wszystkie współczynniki równania charakterystycznego muszą istnieć i mieć ten sam znak. To warunek łatwy do sprawdzenia, ale sam w sobie <b>nie dowodzi stabilności</b> — tylko jej brak.</p>
+    </header>
+    <div class="tf" style="grid-template-columns:1fr">
+      <div class="frac" id="routhPolyBox" style="font-size:14px"></div>
+    </div>
+    <div class="canvas-wrap" style="padding:0 16px 14px" id="routhCoeffs"></div>
+    <div class="canvas-wrap" style="padding:0 16px 16px" id="routhNecVerdict"></div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Tablica Routha dla bieżącego K</h2>
+      <p>Pełny test konieczny i wystarczający: liczba zmian znaku w pierwszej kolumnie równa się liczbie pierwiastków w prawej półpłaszczyźnie.</p>
+    </header>
+    <div class="canvas-wrap" style="overflow-x:auto; padding:14px 16px" id="routhTableBox"></div>
+    <div class="canvas-wrap" style="padding:0 16px 16px; display:flex; flex-direction:column; gap:10px" id="routhVerdictBox"></div>
+    <p class="note" id="routhNote"></p>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Przedziały K</h2>
+      <p>Dla jakich wartości wzmocnienia (jako wolnego parametru rzeczywistego, niezależnie od przełącznika K &lt; 0 w panelu) układ zamknięty jest stabilny.</p>
+    </header>
+    <div class="readout" id="routhRangeSummary" style="grid-template-columns:1fr 1fr"></div>
+    <div class="canvas-wrap" style="padding:14px 16px" id="routhIntervals"></div>
+    <p class="note">Każda granica przedziału to wartość K, przy której jakieś miejsce zerowe równania charakterystycznego przechodzi przez oś urojąą — czyli dokładnie to, co wcześniej znajdował wielomian pomocniczy przy wierszu zerowym w tabeli Routha.</p>
+  </section>
+
+</section>
+
 </main>
 </div>
+
+<section id="tabpanel-block" class="tabpanel tab-full">
+
+  <section class="card">
+    <header>
+      <h2>Schemat blokowy</h2>
+      <p>Przeciągaj bloki, żeby zobaczyć przemienność połączenia szeregowego; włącz gałąź równoległą i sprzężenie zwrotne, żeby zobaczyć reguły redukcji. Wynikowe G(s) możesz przenieść do kart Analiza i Routh–Hurwitz.</p>
+    </header>
+    <div class="bdiag" id="bdiagView"></div>
+  </section>
+
+  <section class="card">
+    <header><h2>Ścieżka w przód</h2><p>Bloki mnożone szeregowo, między sumatorem wejściowym a wyjściem głównym. Kolejność nie zmienia iloczynu — przeciągnij, żeby to sprawdzić.</p></header>
+    <div class="lane" id="laneMain"></div>
+    <div class="lane-add" id="addMain"></div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Gałąź równoległa</h2>
+      <p>Drugi tor sumowany z głównym na wyjściu: G = Ścieżka w przód ± Gałąź. Reguła redukcji poziomów równoległych.</p>
+      <label class="chk" style="margin-left:auto"><input type="checkbox" id="branchOn"> włączona</label>
+    </header>
+    <div class="row" style="padding:12px 16px 0"><label>Znak przy sumowaniu</label>
+      <div class="seg" id="branchSign" style="width:120px">
+        <button data-v="1" aria-pressed="true">+</button>
+        <button data-v="-1" aria-pressed="false">−</button>
+      </div>
+    </div>
+    <div class="lane" id="laneBranch"></div>
+    <div class="lane-add" id="addBranch"></div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Sprzężenie zwrotne</h2>
+      <p>Wyjście wraca przez H(s) do sumatora wejściowego: G<sub>zw</sub> = G / (1 ± G·H).</p>
+      <label class="chk" style="margin-left:auto"><input type="checkbox" id="fbOn"> włączone</label>
+    </header>
+    <div class="row" style="padding:12px 16px 0"><label>Rodzaj sprzężenia</label>
+      <div class="seg" id="fbSign" style="width:220px">
+        <button data-v="1" aria-pressed="true">ujemne (standardowe)</button>
+        <button data-v="-1" aria-pressed="false">dodatnie</button>
+      </div>
+    </div>
+    <div class="lane" id="laneFb"></div>
+    <div class="lane-add" id="addFb"></div>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Wypadkowa transmitancja</h2>
+      <p>Przeliczana na bieżąco z powyższych trzech ścieżek.</p>
+    </header>
+    <div class="tf" style="grid-template-columns:minmax(0,1fr) auto">
+      <div class="frac" id="bdTfBox"></div>
+      <button class="explain-btn" id="bdApply" type="button" aria-pressed="true" style="margin-left:0">Zastosuj do analizy →</button>
+    </div>
+    <p class="note" id="bdNoteBox" style="padding:0 16px 16px"></p>
+  </section>
+
+</section>
+
+<section id="tabpanel-ss" class="tabpanel tab-full">
+
+  <section class="card">
+    <header>
+      <h2>Prosty obwód RLC</h2>
+      <p>Wybierz topologię i wartości R, L, C — transmitancja i model stanowy poniżej przeliczają się od razu z równań obwodu.</p>
+    </header>
+    <div class="row" style="padding:12px 16px 0">
+      <label for="rlcTopo">Topologia</label>
+      <select id="rlcTopo" style="flex:1; max-width:340px"></select>
+    </div>
+    <div class="coef-row" style="padding:12px 16px" id="rlcParams"></div>
+    <div class="canvas-wrap" id="rlcDiagram" style="padding:6px 4px 18px"></div>
+    <p class="note" id="rlcNote"></p>
+  </section>
+
+  <section class="card">
+    <header>
+      <h2>Model stanowy ↔ transmitancja</h2>
+      <p>Edytuj którykolwiek panel — drugi przelicza się automatycznie. TF→SS używa postaci sterowalnej, SS→TF — algorytmu Faddeeva–LeVerriera.</p>
+    </header>
+    <div class="row" style="padding:12px 16px 0">
+      <label for="ssOrder">Rząd układu n</label>
+      <div class="seg" id="ssOrder" style="width:200px">
+        <button data-n="1" aria-pressed="false">1</button>
+        <button data-n="2" aria-pressed="true">2</button>
+        <button data-n="3" aria-pressed="false">3</button>
+        <button data-n="4" aria-pressed="false">4</button>
+      </div>
+      <button class="add" id="ssFromAnalysis" type="button" style="margin-left:auto; flex:none; padding:7px 12px; font-size:12px">← wczytaj z karty Analiza</button>
+    </div>
+
+    <div class="grid2" style="padding:14px 16px">
+      <div>
+        <div class="eyebrow" style="padding-bottom:6px">Transmitancja G(s) = N(s) / D(s)</div>
+        <div class="row"><label style="width:76px">N(s), malejąco</label>
+          <input type="text" id="tfNum" style="flex:1; font-family:'IBM Plex Mono',monospace" value="0, 4"></div>
+        <div class="row" style="margin-top:6px"><label style="width:76px">D(s), malejąco</label>
+          <input type="text" id="tfDen" style="flex:1; font-family:'IBM Plex Mono',monospace" value="1, 3, 4"></div>
+        <div class="frac" id="ssTfPreview" style="margin-top:12px; font-size:14px"></div>
+      </div>
+      <div>
+        <div class="eyebrow" style="padding-bottom:6px">Model stanowy</div>
+        <div id="ssMatrixGrid"></div>
+      </div>
+    </div>
+
+    <div class="tf" style="grid-template-columns:1fr auto">
+      <p class="note" id="ssNote" style="padding:0"></p>
+      <button class="explain-btn" id="ssApply" type="button" aria-pressed="true" style="margin-left:0">Zastosuj do analizy →</button>
+    </div>
+  </section>
+
+</section>
 
 <button class="ctl-toggle" id="ctlToggle" type="button" aria-expanded="false" aria-controls="rail"><span id="ctlLabel">Sterowanie</span><span class="arrow" aria-hidden="true">▲</span></button>
 
@@ -595,6 +943,16 @@ function polyRoots(a){
   }
   return r;
 }
+// jak polyRoots, ale odzyskuje pierwiastki DOKŁADNIE w s=0 (albo K=0 itp.),
+// które polyRoots po cichu odrzuca przycinając zerowy wyraz wolny
+function fullRoots(coeffsDesc){
+  let c=coeffsDesc.slice();
+  while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();
+  const roots=[];
+  while(c.length>1 && Math.abs(c[c.length-1])<1e-9){ c.pop(); roots.push(C(0,0)); }
+  if(c.length>1) roots.push(...polyRoots(c));
+  return roots;
+}
 
 const polyder=c=>{const n=c.length-1; return n<1?[0]:c.slice(0,-1).map((v,i)=>v*(n-i));};
 const polyaddK=(D,N,k)=>{const L=Math.max(D.length,N.length),o=new Array(L).fill(0);
@@ -619,6 +977,654 @@ function charRoots(k){
   const poly=new Array(L).fill(0);
   for(let i=0;i<L;i++) poly[i]=(Dp[i]||0)+k*(Np[i]||0);
   return polyRoots(poly);
+}
+
+
+/* =====================================================================
+   ROUTH--HURWITZ: warunek konieczny, tablica dla biezacego K,
+   przedzialy K (symbolicznie w K jako wolnym parametrze rzeczywistym).
+   ===================================================================== */
+
+/* wielomian charakterystyczny D(s)+K*N(s), z tym samym przyblizeniem
+   Pade(1,1) opoznienia co reszta aplikacji (charRoots) -- zachowuje
+   spojnosc, ale NIE jest scisle, gdy Td>0 (patrz baner w UI) */
+function charPolyCoeffs(k){
+  let N=polyFrom('z'), D=polyFrom('p');
+  for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
+  if(S.Td>0){ N=polymul(N,[-S.Td/2,1]); D=polymul(D,[S.Td/2,1]); }
+  const L=Math.max(N.length,D.length);
+  const Np=N.length<L? new Array(L-N.length).fill(0).concat(N): N;
+  const Dp=D.length<L? new Array(L-D.length).fill(0).concat(D): D;
+  return Dp.map((d,i)=>d+k*(Np[i]||0));
+}
+/* to samo, ale jako para [a_i,b_i] tak ze c_i(K)=a_i+b_i*K */
+function charPolyOfK(){
+  let N=polyFrom('z'), D=polyFrom('p');
+  for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
+  if(S.Td>0){ N=polymul(N,[-S.Td/2,1]); D=polymul(D,[S.Td/2,1]); }
+  const L=Math.max(N.length,D.length);
+  const Np=N.length<L? new Array(L-N.length).fill(0).concat(N): N;
+  const Dp=D.length<L? new Array(L-D.length).fill(0).concat(D): D;
+  return Dp.map((d,i)=>[d, Np[i]||0]);
+}
+
+/* ---- prosta arytmetyka wielomianow (K jako zmienna, malejaco) ---- */
+const kpAdd=(a,b)=>{const L=Math.max(a.length,b.length),o=new Array(L).fill(0);
+  for(let i=0;i<a.length;i++) o[L-a.length+i]+=a[i];
+  for(let i=0;i<b.length;i++) o[L-b.length+i]+=b[i];
+  return o;};
+const kpSub=(a,b)=>kpAdd(a,b.map(v=>-v));
+const kpTrim=a=>{let i=0; while(i<a.length-1 && Math.abs(a[i])<1e-12) i++; return a.slice(i);};
+const kpEval=(a,x)=>{let r=0; for(const c of a) r=r*x+c; return r;};
+
+/* ulamek wielomianow w K: {num,den}, den domyslnie [1] */
+const fracMk=(num,den)=>({num, den:den||[1]});
+const fracMul=(f,g)=>fracMk(polymul(f.num,g.num), polymul(f.den,g.den));
+const fracSub=(f,g)=>fracMk(kpSub(polymul(f.num,g.den), polymul(g.num,f.den)), polymul(f.den,g.den));
+const fracDiv=(f,g)=>fracMk(polymul(f.num,g.den), polymul(f.den,g.num));
+const ZEROFRAC=fracMk([0]);
+
+/* ---- tablica Routha dla konkretnych, liczbowych wspolczynnikow ---- */
+// zwraca {rows, W, events, firstCol, signs, Z}
+function routhNumeric(cDesc){
+  let c=cDesc.slice();
+  while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();          // usun zera wiodace
+  const n=c.length-1;
+  if(n<0) return null;
+  const W=Math.max(2,Math.ceil((n+1)/2)+1);
+  const mk=arr=>{ const r=arr.slice(); while(r.length<W) r.push(0); return r; };
+  let r0=[],r1=[];
+  for(let i=0;i<c.length;i+=2) r0.push(c[i]);
+  for(let i=1;i<c.length;i+=2) r1.push(c[i]);
+  const rows=[mk(r0), mk(r1)];
+  const events=[];
+  const powOf=idx=>n-idx;
+  for(let i=2;i<=n;i++){
+    if(rows[i-1].every(v=>Math.abs(v)<1e-9)){
+      const pw=powOf(i-2), src=rows[i-2];
+      const aux=src.slice();
+      const der=[]; for(let j=0;j<aux.length-1;j++){ const p2=pw-2*j; der.push(p2*aux[j]); }
+      rows[i-1]=mk(der);
+      const auxCoeffs=[]; for(let j=0;j*2<=pw;j++) if(Math.abs(aux[j])>1e-12||j===0) auxCoeffs.push([pw-2*j,aux[j]]);
+      events.push({row:i-1, type:'zero-row', auxDeg:pw, auxCoeffs});
+    }
+    const prev=rows[i-1], prev2=rows[i-2];
+    const p0=prev[0];
+    let divisor=p0, epsUsed=false;
+    if(Math.abs(p0)<1e-9){ divisor = (p0>=0?1:-1)*1e-8; epsUsed=true; }
+    const row=[];
+    for(let j=0;j<W-1;j++) row.push((p0*(prev2[j+1]??0) - prev2[0]*(prev[j+1]??0))/divisor);
+    rows.push(mk(row));
+    if(epsUsed) events.push({row:i, type:'eps'});
+  }
+  const firstCol=rows.map(r=>r[0]);
+  const signs=firstCol.map(v=>Math.abs(v)<1e-9?0:(v>0?1:-1));
+  let Z=0, lastSign=0;
+  for(const sg of signs){ if(sg===0) continue; if(lastSign!==0 && sg!==lastSign) Z++; lastSign=sg; }
+  return {rows, W, n, events, firstCol, signs, Z};
+}
+
+/* warunek konieczny: wszystkie c_i tego samego znaku co wiodacy */
+function necessaryCheck(cDesc){
+  let c=cDesc.slice();
+  while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();
+  const lead=c[0]>=0?1:-1;
+  const items=c.map((v,i)=>({pow:c.length-1-i, val:v, ok: lead*v>1e-9}));
+  return {items, allOk: items.every(it=>it.ok), lead};
+}
+
+/* ---- tablica Routha SYMBOLICZNIE w K (ulamki wielomianow) ---- */
+// ponytail: brak obslugi degeneracji "caly wiersz zerowy" w wersji symbolicznej
+// (rzadki przypadek szczegolny) -- numeryczna ewaluacja pojedynczych K
+// (routhNumeric) i tak wychwytuje go poprawnie przy odczycie danego K.
+function routhSymbolic(){
+  const cK=charPolyOfK();
+  const n=cK.length-1;
+  const toFrac=([a,b])=>fracMk(kpTrim([b,a]));
+  let r0=[],r1=[];
+  for(let i=0;i<cK.length;i+=2) r0.push(toFrac(cK[i]));
+  for(let i=1;i<cK.length;i+=2) r1.push(toFrac(cK[i]));
+  const W=Math.max(2,Math.ceil((n+1)/2)+1);
+  const pad=arr=>{ const r=arr.slice(); while(r.length<W) r.push(ZEROFRAC); return r; };
+  const rows=[pad(r0), pad(r1)];
+  for(let i=2;i<=n;i++){
+    const prev=rows[i-1], prev2=rows[i-2];
+    const row=[];
+    for(let j=0;j<W-1;j++){
+      const a=prev[0]||ZEROFRAC, b=prev2[j+1]||ZEROFRAC, c=prev2[0]||ZEROFRAC, d=prev[j+1]||ZEROFRAC;
+      const term=fracSub(fracMul(a,b), fracMul(c,d));
+      row.push(fracDiv(term,a));
+    }
+    rows.push(pad(row));
+  }
+  return {rows, n, W};
+}
+
+/* krytyczne K: rzeczywiste pierwiastki licznikow wszystkich wpisow
+   pierwszej kolumny tablicy symbolicznej */
+function realRootsK(numDesc){
+  return fullRoots(numDesc).filter(r=>Math.abs(r.im)<1e-6).map(r=>r.re);
+}
+function criticalKs(){
+  const {rows}=routhSymbolic();
+  const ks=[];
+  for(const row of rows){
+    const f=row[0];
+    const num=kpTrim(f.num);
+    if(num.length<2) continue;               // stala -> brak zalezno\u015bci od K
+    ks.push(...realRootsK(num));
+  }
+  ks.sort((a,b)=>a-b);
+  const uniq=[];
+  for(const k of ks) if(!uniq.length || Math.abs(k-uniq[uniq.length-1])>1e-7) uniq.push(k);
+  return uniq;
+}
+
+/* warunek konieczny jako pojedyncze przedzialy [lo,hi] w K (przeciecie) */
+function necessaryRangeK(){
+  const cK=charPolyOfK();
+  let lead=cK[0][0]+cK[0][1]*0; // a_n przy K=0 -- do ustalenia orientacji znaku
+  // je\u015bli wsp\u00f3\u0142czynnik wiod\u0105cy sam zale\u017cy od K (b\u22600), orientacj\u0119 bierzemy z a-cz\u0119\u015bci
+  const sgnLead = (cK[0][0]!==0? Math.sign(cK[0][0]) : (cK[0][1]!==0? Math.sign(cK[0][1]) : 1)) || 1;
+  let lo=-Infinity, hi=Infinity, impossible=false, impossiblePow=null;
+  for(const [a,b] of cK){
+    const aa=a*sgnLead, bb=b*sgnLead;              // wymagamy aa+bb*K > 0
+    if(Math.abs(bb)<1e-12){
+      if(aa<=1e-9){ impossible=true; }
+    } else {
+      const k0=-aa/bb;
+      if(bb>0) lo=Math.max(lo,k0); else hi=Math.min(hi,k0);
+    }
+  }
+  if(lo>hi) impossible=true;
+  return {lo,hi,impossible};
+}
+
+/* pelne przedzialy stabilnosci z liczby zmian znaku w kazdym przedziale
+   wyznaczonym przez punkty krytyczne */
+function fullStableRanges(){
+  const crit=criticalKs();
+  const bounds=[-Infinity, ...crit, Infinity];
+  const out=[];
+  for(let i=0;i<bounds.length-1;i++){
+    const lo=bounds[i], hi=bounds[i+1];
+    if(hi-lo<1e-9) continue;
+    let mid;
+    if(!isFinite(lo) && !isFinite(hi)) mid=0;
+    else if(!isFinite(lo)) mid=hi-Math.max(1,Math.abs(hi)*0.5+1);
+    else if(!isFinite(hi)) mid=lo+Math.max(1,Math.abs(lo)*0.5+1);
+    else mid=(lo+hi)/2;
+    const c=charPolyCoeffs(mid);
+    const r=routhNumeric(c);
+    out.push({lo,hi,mid,Z:r?r.Z:null});
+  }
+  return out;
+}
+
+/* ---------- render karty Routha ---------- */
+function fmtK(v){ return isFinite(v)? fx(v) : (v>0?'+\u221e':'\u2212\u221e'); }
+function polyToHtml(c,label){
+  const n=c.length-1, parts=[];
+  c.forEach((v,i)=>{
+    if(Math.abs(v)<1e-12 && n>0) return;
+    const pw=n-i, sgn = parts.length? (v<0?' \u2212 ':' + ') : (v<0?'\u2212':'');
+    const av=fx(Math.abs(v));
+    const term = pw===0? av : (pw===1? (Math.abs(v-1)<1e-9?'s':av+'s') : (Math.abs(v-1)<1e-9?'s'+sup(pw):av+'s'+sup(pw)));
+    parts.push(sgn+term);
+  });
+  return (label?label+' = ':'')+(parts.join('')||'0');
+}
+
+function refreshRouth(){
+  const A = LAST || analyse();
+  $('routhTdWarn').hidden = !(S.Td>0);
+
+  const cNow = charPolyCoeffs(K());
+  $('routhPolyBox').innerHTML = '<span class="lead">'+esc(polyToHtml(cNow,'D(s) + K\u00b7N(s), K='+fx(K())))+' = 0</span>';
+
+  const nec = necessaryCheck(cNow);
+  $('routhCoeffs').innerHTML = '<div class="coef-row">'+nec.items.map(it=>
+    `<div class="coef-chip ${it.ok?'ok':'bad'}"><span class="lbl">s${it.pow===0?'⁰':sup(it.pow)}</span><b>${fx(it.val)}</b></div>`
+  ).join('')+'</div>';
+  $('routhNecVerdict').innerHTML = nec.allOk
+    ? '<span class="verdict ok">warunek konieczny spe\u0142niony \u2014 stabilno\u015b\u0107 mo\u017cliwa, ale jeszcze nie potwierdzona</span>'
+    : '<span class="verdict no">warunek konieczny NIE spe\u0142niony \u2014 uk\u0142ad na pewno niestabilny, dalsza tabelka jest zbyteczna</span>';
+
+  const rt = routhNumeric(cNow);
+  if(rt){
+    const rows=rt.rows, W=rt.W, n=rt.n;
+    let html='<table class="routh-table"><thead><tr><th></th>'+
+      Array.from({length:W},(_,j)=>`<th>kol. ${j+1}</th>`).join('')+'</tr></thead><tbody>';
+    let lastSign=0;
+    rows.forEach((row,i)=>{
+      const pw=n-i;
+      const ev=rt.events.filter(e=>e.row===i);
+      const isEps=ev.some(e=>e.type==='eps'), isZeroFix=ev.some(e=>e.type==='zero-row');
+      html+=`<tr><td class="rowlab">s${pw===0?'⁰':sup(pw)}</td>`;
+      row.forEach((v,j)=>{
+        const sg = Math.abs(v)<1e-9?0:(v>0?1:-1);
+        let cls='';
+        if(j===0){
+          cls = sg>0?'sign-pos':(sg<0?'sign-neg':'');
+          if(sg!==0 && lastSign!==0 && sg!==lastSign) cls+=' sign-flip';
+          if(sg!==0) lastSign=sg;
+        }
+        const epsHere = j===0 && isEps;
+        html+=`<td class="${j===0?'piv '+cls:''}${epsHere?' eps':''}">${epsHere?'\u03b5\u2248':''}${fx(v,4)}</td>`;
+      });
+      html+='</tr>';
+      if(isZeroFix){
+        const e=ev.find(x=>x.type==='zero-row');
+        const auxTxt = e.auxCoeffs.map(([pw2,cf])=>fx(cf)+'s'+(pw2===0?'':sup(pw2))).join(' + ');
+        html+=`<tr><td></td><td colspan="${W}" style="text-align:left; color:var(--amber); font-family:'IBM Plex Sans',sans-serif; font-size:11.5px; white-space:normal; padding:4px 12px">wiersz zerowy \u2014 wielomian pomocniczy A(s) = ${esc(auxTxt)}, u\u017cyto jego pochodnej do kontynuacji tabeli (pierwiastki A(s) le\u017c\u0105 symetrycznie wzgl\u0119dem pocz\u0105tku uk\u0142adu)</td></tr>`;
+      }
+    });
+    html+='</tbody></table>';
+    $('routhTableBox').innerHTML=html;
+
+    const crossOk = Math.abs(rt.Z - A.Z) < 0.5;
+    $('routhVerdictBox').innerHTML =
+      (rt.Z===0
+        ? `<span class="verdict ok">Z = 0 \u2014 wszystkie pierwiastki w lewej p\u00f3\u0142p\u0142aszczy\u017anie, uk\u0142ad zamkni\u0119ty stabilny</span>`
+        : `<span class="verdict no">Z = ${rt.Z} \u2014 tyle zmian znaku w pierwszej kolumnie, tyle pierwiastk\u00f3w w prawej p\u00f3\u0142p\u0142aszczy\u017anie</span>`)
+      + `<span style="font-size:12px; color:${crossOk?'var(--muted)':'var(--bad)'}">Kontrola wzgl\u0119dem konturu Nyquista (karta Analiza): Z\u2099\u1d67\u2071 = ${A.Z} \u2014 ${crossOk?'zgodne.':'ROZBIE\u017bNO\u015a\u0106 \u2014 sprawd\u017a T_d (Pad\u00e9 zniekszta\u0142ca wielomian) albo epsilon-podstawienie w wierszu zerowym.'}</span>`;
+    $('routhNote').textContent = 'Kolumny bez wpisu (puste miejsce po prawej) licz jako zera. Migaj\u0105ca strza\u0142ka przy pierwszej kolumnie oznacza zmian\u0119 znaku.';
+  } else {
+    $('routhTableBox').innerHTML='<p class="note">Wielomian sta\u0142y \u2014 brak dynamiki do zbadania.</p>';
+    $('routhVerdictBox').innerHTML='';
+  }
+
+  // przedzialy K
+  const necR = necessaryRangeK();
+  $('routhRangeSummary').innerHTML =
+    `<div><dt>warunek konieczny (szybki, niewystarczaj\u0105cy)</dt><dd>${necR.impossible? 'niespe\u0142nialny dla \u017cadnego K' : '('+fmtK(necR.lo)+' , '+fmtK(necR.hi)+')'}</dd></div>`;
+
+  const full = fullStableRanges();
+  const stable = full.filter(r=>r.Z===0);
+  $('routhRangeSummary').innerHTML +=
+    `<div><dt>pe\u0142ny warunek (konieczny i wystarczaj\u0105cy)</dt><dd>${stable.length? stable.map(r=>'('+fmtK(r.lo)+' , '+fmtK(r.hi)+')').join(' \u222a ') : 'brak \u2014 uk\u0142ad niestabilny dla ka\u017cdego K'}</dd></div>`;
+
+  const allBounds=[...new Set(full.flatMap(r=>[r.lo,r.hi]).filter(isFinite))].sort((a,b)=>a-b);
+  const finite = allBounds.length? allBounds : [-1,1];
+  const span = Math.max(1, finite[finite.length-1]-finite[0]);
+  const axLo = finite[0]-span*0.25, axHi=finite[finite.length-1]+span*0.25;
+  const X = v=>{ const t=(v-axLo)/(axHi-axLo); return 4+t*92; };
+  let axis = '<div class="axis-k"><div class="track"></div>';
+  if(axLo<0 && axHi>0) axis += `<div class="zero" style="left:${X(0)}%"></div>`;
+  stable.forEach(r=>{
+    const lo = isFinite(r.lo)? X(r.lo) : 0, hi = isFinite(r.hi)? X(r.hi) : 100;
+    axis += `<div class="seg" style="left:${lo}%; width:${Math.max(0.6,hi-lo)}%"></div>`;
+  });
+  allBounds.forEach(b=>{ axis += `<div class="pt" style="left:${X(b)}%" title="K=${fx(b)}"></div>`; });
+  axis += '</div>';
+
+  const list = full.map(r=>{
+    const label = (isFinite(r.lo)?fx(r.lo):(r.lo>0?'+\u221e':'\u2212\u221e')) + ' \u2026 ' + (isFinite(r.hi)?fx(r.hi):(r.hi>0?'+\u221e':'\u2212\u221e'));
+    return `<div class="rng-line ${r.Z===0?'stable':''}"><span class="k-int">K \u2208 (${label})</span>`
+      + `<span class="zbadge">${r.Z===0?'stabilny, Z = 0':'niestabilny, Z = '+r.Z}</span></div>`;
+  }).join('');
+  $('routhIntervals').innerHTML = axis + '<div class="rng-list" style="margin-top:10px">'+(list||'<span class="note">brak punkt\u00f3w krytycznych \u2014 znak pierwszej kolumny sta\u0142y dla wszystkich K.</span>')+'</div>';
+}
+
+
+/* =====================================================================
+   SCHEMAT BLOKOWY: sciezka w przod (przestawialna), galaz rownolegla,
+   sprzezenie zwrotne. Kazdy blok ma wlasna (num,den); laczenie szeregowe
+   to mnozenie wielomianow, rownolegle i sprzezenie -- standardowe wzory
+   algebry schematow blokowych.
+   ===================================================================== */
+
+function fracHtml(numDesc,denDesc,leadLabel){
+  const numS = polyToHtml(numDesc,'') || '0';
+  const denS = polyToHtml(denDesc,'') || '1';
+  return `<span class="lead">${esc(leadLabel)}</span><span class="stack"><span>${esc(numS)}</span><span>${esc(denS)}</span></span>`;
+}
+
+/* przenosi obliczone G(s)=N(s)/D(s) do reprezentacji K/nu/bieguny-zera
+   uzywanej przez karty Analiza i Routh-Hurwitz */
+function adoptTF(Ndesc,Ddesc){
+  let N=Ndesc.slice(), D=Ddesc.slice();
+  while(N.length>1 && Math.abs(N[0])<1e-12) N.shift();
+  while(D.length>1 && Math.abs(D[0])<1e-12) D.shift();
+  if(D.every(v=>Math.abs(v)<1e-12)){ alert('Mianownik wypadkowej transmitancji jest zerowy \u2014 sprawd\u017a schemat.'); return false; }
+  const leadN = N.every(v=>Math.abs(v)<1e-12) ? 0 : N[0];
+  const leadD = D[0];
+  const Kval = leadD!==0 ? leadN/leadD : 0;
+  let Dc=D.slice(), nu=0;
+  while(Dc.length>1 && Math.abs(Dc[Dc.length-1])<1e-9){ Dc.pop(); nu++; }
+  const poles = Dc.length>1 ? polyRoots(Dc) : [];
+  const zeros = leadN!==0 ? fullRoots(N) : [];
+  const mkItems=(arr,kind)=>{
+    const items=[], used=new Array(arr.length).fill(false);
+    arr.forEach((r,i)=>{
+      if(used[i]) return;
+      if(Math.abs(r.im)<1e-7){ items.push({kind,re:r.re,im:0,on:true}); used[i]=true; return; }
+      const j=arr.findIndex((r2,k)=>!used[k]&&k!==i&&Math.abs(r2.re-r.re)<1e-6&&Math.abs(r2.im+r.im)<1e-6);
+      items.push({kind,re:r.re,im:Math.abs(r.im),on:true});
+      used[i]=true; if(j>=0) used[j]=true;
+    });
+    return items;
+  };
+  if(nu>3){ alert('Uk\u0142ad ma '+nu+' biegun\u00f3w w zerze \u2014 panel obs\u0142uguje astatyzm do rz\u0119du 3. Ograniczono do 3.'); nu=3; }
+  S.items=[...mkItems(poles,'p'), ...mkItems(zeros,'z')];
+  S.Kmag=Math.max(Math.abs(Kval),1e-6); S.Kneg=Kval<0;
+  S.nu=nu; S.Td=0;
+  renderPZ(); syncControls(); refresh();
+  return true;
+}
+
+const BLOCK_TYPES = {
+  gain:    {label:'Wzmocnienie',      short:'K',        params:[{key:'k',label:'K',def:2,step:0.1}],
+            tf:pr=>({num:[pr.k], den:[1]})},
+  integ:   {label:'Ca\u0142kowanie',       short:'1/s',      params:[],
+            tf:()=>({num:[1], den:[1,0]})},
+  inertia: {label:'Inercja',          short:'1/(Ts+1)', params:[{key:'T',label:'T',def:1,step:0.1}],
+            tf:pr=>({num:[1], den:[pr.T,1]})},
+  lead:    {label:'Cz\u0142on r\u00f3\u017cniczkuj\u0105cy', short:'(Ts+1)',   params:[{key:'T',label:'T',def:1,step:0.1}],
+            tf:pr=>({num:[pr.T,1], den:[1]})},
+};
+let BLK_ID=1;
+const mkBlock=type=>{
+  const def={}; BLOCK_TYPES[type].params.forEach(pp=>def[pp.key]=pp.def);
+  return {id:BLK_ID++, type, p:def};
+};
+
+const BD={
+  main:[mkBlock('gain'), mkBlock('inertia')],
+  branch:{on:false, sign:1, chain:[mkBlock('gain')]},
+  fb:{on:false, sign:1, chain:[mkBlock('gain')]},
+};
+
+function tfOfChain(chain){
+  let num=[1], den=[1];
+  for(const b of chain){
+    const t=BLOCK_TYPES[b.type].tf(b.p);
+    num=polymul(num,t.num); den=polymul(den,t.den);
+  }
+  return {num,den};
+}
+const fAdd=(f,g,sign)=>({num:kpAdd(polymul(f.num,g.den), polymul(g.num,f.den).map(v=>v*sign)), den:polymul(f.den,g.den)});
+
+function computeG(){
+  let G=tfOfChain(BD.main);
+  if(BD.branch.on) G=fAdd(G, tfOfChain(BD.branch.chain), BD.branch.sign);
+  if(BD.fb.on){
+    const H=tfOfChain(BD.fb.chain);
+    const num=polymul(G.num,H.den);
+    const den=kpAdd(polymul(G.den,H.den), polymul(G.num,H.num).map(v=>v*BD.fb.sign));
+    G={num,den};
+  }
+  return G;
+}
+
+/* ---------- rysunek schematu (uproszczony, przeplywowy) ---------- */
+function chainLabel(chain){
+  return chain.length? chain.map(b=>BLOCK_TYPES[b.type].short).join(' \u00b7 ') : '1';
+}
+function renderDiagram(){
+  const node=(txt,cls)=>`<div class="bd-node ${cls||''}">${txt}</div>`;
+  const box=(txt,small)=>`<div class="bd-box">${txt}${small?`<small>${small}</small>`:''}</div>`;
+  const arrow=(lbl)=>`<div class="bd-arrow">${lbl?`<span class="bd-label">${lbl}</span>`:''}</div>`;
+  const parts=[];
+  parts.push(`<span class="bd-label">u</span>`);
+  parts.push(arrow());
+  parts.push(node('\u03a3','sum'));
+  parts.push(arrow());
+  parts.push(box(esc(chainLabel(BD.main)),'\u015bcie\u017cka w prz\u00f3d'));
+  parts.push(arrow());
+  if(BD.branch.on) parts.push(node('\u03a3','sum'));
+  parts.push(arrow());
+  parts.push(`<span class="bd-label">y</span>`);
+  let html=`<div style="display:flex; align-items:center; min-width:max-content">${parts.join('')}</div>`;
+  const extra=[];
+  if(BD.branch.on) extra.push(`<div class="note" style="padding:0">r\u00f3wnoleg\u0142a ga\u0142\u0105\u017a (${BD.branch.sign>0?'+':'\u2212'}): ${esc(chainLabel(BD.branch.chain))}</div>`);
+  if(BD.fb.on) extra.push(`<div class="note" style="padding:0">sprz\u0119\u017cenie zwrotne (${BD.fb.sign>0?'ujemne':'dodatnie'}): H(s) = ${esc(chainLabel(BD.fb.chain))}</div>`);
+  $('bdiagView').innerHTML = html + (extra.length? '<div style="display:flex; flex-direction:column; gap:4px; margin-top:10px">'+extra.join('')+'</div>' : '');
+}
+
+/* ---------- lane: chipy z przeciaganiem ---------- */
+function renderLane(el, chain, onChange){
+  el.innerHTML='';
+  let dragFrom=null;
+  chain.forEach((b,i)=>{
+    const def=BLOCK_TYPES[b.type];
+    const chip=document.createElement('div');
+    chip.className='blk'; chip.draggable=true; chip.dataset.i=i;
+    chip.innerHTML = `<span class="handle" title="przeci\u0105gnij, \u017ceby zmieni\u0107 kolejno\u015b\u0107">\u22ee\u22ee</span>`
+      + `<span class="ty">${esc(def.label)}</span>`
+      + def.params.map(pp=>`<span class="prm">${esc(pp.label)}=<input type="number" step="${pp.step}" value="${b.p[pp.key]}" data-k="${pp.key}"></span>`).join('')
+      + `<button class="rm" title="usu\u0144" aria-label="usu\u0144">\u00d7</button>`;
+    chip.addEventListener('dragstart',e=>{ dragFrom=i; chip.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+    chip.addEventListener('dragend',()=>{ chip.classList.remove('dragging'); el.querySelectorAll('.blk').forEach(c=>c.classList.remove('drop-before','drop-after')); });
+    chip.addEventListener('dragover',e=>{
+      e.preventDefault();
+      const r=chip.getBoundingClientRect(); const before=(e.clientX-r.left)<r.width/2;
+      chip.classList.toggle('drop-before',before); chip.classList.toggle('drop-after',!before);
+    });
+    chip.addEventListener('dragleave',()=>chip.classList.remove('drop-before','drop-after'));
+    chip.addEventListener('drop',e=>{
+      e.preventDefault();
+      const to=+chip.dataset.i, before=chip.classList.contains('drop-before');
+      chip.classList.remove('drop-before','drop-after');
+      if(dragFrom===null) return;
+      const item=chain.splice(dragFrom,1)[0];
+      let dest=to>dragFrom? to-1 : to;
+      if(!before) dest+=1;
+      chain.splice(dest,0,item);
+      onChange();
+    });
+    chip.querySelector('.rm').onclick=()=>{ chain.splice(i,1); onChange(); };
+    chip.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input',()=>{ b.p[inp.dataset.k]=parseFloat(inp.value)||0; onChange(); });
+    });
+    el.appendChild(chip);
+  });
+}
+
+function laneAddControls(el, chain, onChange){
+  const sel=document.createElement('select');
+  Object.entries(BLOCK_TYPES).forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v.label; sel.appendChild(o); });
+  const btn=document.createElement('button'); btn.type='button'; btn.textContent='+ dodaj blok';
+  btn.onclick=()=>{ chain.push(mkBlock(sel.value)); onChange(); };
+  el.innerHTML=''; el.appendChild(sel); el.appendChild(btn);
+}
+
+function refreshBlock(){
+  renderLane($('laneMain'), BD.main, refreshBlock);
+  renderLane($('laneBranch'), BD.branch.chain, refreshBlock);
+  renderLane($('laneFb'), BD.fb.chain, refreshBlock);
+  renderDiagram();
+  const G=computeG();
+  $('bdTfBox').innerHTML = fracHtml(G.num, G.den, 'G(s) = ');
+  const trimmed=G.den.slice(); while(trimmed.length>1 && Math.abs(trimmed[0])<1e-12) trimmed.shift();
+  $('bdNoteBox').textContent = trimmed.length<=1
+    ? 'Mianownik sta\u0142y \u2014 dodaj co najmniej jeden blok dynamiczny (ca\u0142kowanie albo inercj\u0119), \u017ceby uk\u0142ad mia\u0142 bieguny.'
+    : 'Rz\u0105d mianownika: '+(trimmed.length-1)+'. Kliknij \u201eZastosuj do analizy\u201d, \u017ceby przenie\u015b\u0107 bieguny, zera i K do kart Analiza oraz Routh\u2013Hurwitz.';
+}
+
+
+/* =====================================================================
+   MODEL STANOWY <-> TRANSMITANCJA (SISO) + PROSTY OBWOD RLC
+   TF -> SS: postac sterowalna (companion form).
+   SS -> TF: algorytm Faddeeva-LeVerriera (rownoczesnie wielomian
+   charakterystyczny i licznik, tylko dodawanie/mnozenie macierzy).
+   ===================================================================== */
+
+function matI(n){ return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0)); }
+function matMul(A,B){
+  const n=A.length, k=B.length, m=B[0]?B[0].length:0;
+  const R=Array.from({length:n},()=>new Array(m).fill(0));
+  for(let i=0;i<n;i++) for(let j=0;j<m;j++){ let sum=0; for(let t=0;t<k;t++) sum+=A[i][t]*B[t][j]; R[i][j]=sum; }
+  return R;
+}
+function matAddScaled(A,c,I){ return A.map((row,i)=>row.map((v,j)=>v+c*I[i][j])); }
+function trace(A){ let t=0; for(let i=0;i<A.length;i++) t+=A[i][i]; return t; }
+function matVec(A,v){ return A.map(row=>row.reduce((acc,a,j)=>acc+a*v[j],0)); }
+function dot(u,v){ return u.reduce((acc,x,i)=>acc+x*v[i],0); }
+
+function faddeevLeVerrier(A){
+  const n=A.length, I=matI(n);
+  let Mk=I; const Ms=[Mk]; const c=[1];
+  for(let k=1;k<=n;k++){
+    const AMk=matMul(A,Mk);
+    const ck=-trace(AMk)/k;
+    c.push(ck);
+    Mk=matAddScaled(AMk, ck, I);
+    if(k<n) Ms.push(Mk);
+  }
+  return {c, Ms};
+}
+function ssToTF(A,B,Cr,D){
+  const n=A.length;
+  if(n===0) return {num:[D], den:[1]};
+  const {c,Ms}=faddeevLeVerrier(A);
+  const numFromAdj = Ms.map(Mk=>dot(Cr, matVec(Mk,B)));
+  const Nfull=new Array(n+1).fill(0);
+  for(let k=0;k<n;k++) Nfull[k+1]=numFromAdj[k];
+  const Dp=c.map(v=>v*D);
+  const num=Nfull.map((v,i)=>v+Dp[i]);
+  return {num, den:c};
+}
+function tfToSS(numIn,denIn){
+  let den=denIn.slice();
+  while(den.length>1 && Math.abs(den[0])<1e-12) den.shift();
+  const n=den.length-1;
+  if(n<1) return null;
+  const a=den.map(v=>v/den[0]);
+  let num=numIn.slice();
+  if(num.length>n+1) num=num.slice(num.length-(n+1));   // ponytail: uk\u0142ady w\u0142a\u015bciwe, cz\u0119\u015b\u0107 niew\u0142a\u015bciwa obcinana
+  while(num.length<n+1) num=[0,...num];
+  const b=num.map(v=>v/den[0]);
+  const A=Array.from({length:n},()=>new Array(n).fill(0));
+  for(let i=0;i<n-1;i++) A[i][i+1]=1;
+  for(let j=0;j<n;j++) A[n-1][j]=-a[n-j];
+  const B=new Array(n).fill(0); B[n-1]=1;
+  const D=b[0];
+  const Cr=new Array(n);
+  for(let j=0;j<n;j++) Cr[j]=b[n-j]-D*a[n-j];
+  return {A,B,C:Cr,D};
+}
+
+/* ---------- stan panelu ---------- */
+const SSM={ A:[[0,1],[-4,-3]], B:[0,1], C:[4,0], D:0 };
+let SS_TF={num:[0,4], den:[1,3,4]};
+
+function parseNums(str){ return str.split(/[,\s]+/).filter(x=>x.length).map(Number).filter(v=>!Number.isNaN(v)); }
+
+function renderMatrixGrid(){
+  const n=SSM.A.length;
+  let html='<div class="mtx-block"><span class="mtx-lbl">A =</span>';
+  html+=`<div class="mtx-grid" style="grid-template-columns:repeat(${n},1fr)">`;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++) html+=`<input type="number" step="0.1" value="${SSM.A[i][j]}" data-m="A" data-i="${i}" data-j="${j}">`;
+  html+='</div>';
+  html+='<span class="mtx-lbl">B =</span><div class="mtx-col" style="grid-template-columns:1fr">';
+  for(let i=0;i<n;i++) html+=`<input type="number" step="0.1" value="${SSM.B[i]}" data-m="B" data-i="${i}">`;
+  html+='</div></div>';
+  html+='<div class="mtx-block"><span class="mtx-lbl">C =</span>';
+  html+=`<div class="mtx-grid" style="grid-template-columns:repeat(${n},1fr)">`;
+  for(let j=0;j<n;j++) html+=`<input type="number" step="0.1" value="${SSM.C[j]}" data-m="C" data-i="0" data-j="${j}">`;
+  html+='</div>';
+  html+=`<span class="mtx-lbl">D =</span><div class="mtx-scalar"><input type="number" step="0.1" value="${SSM.D}" data-m="D"></div>`;
+  html+='</div>';
+  $('ssMatrixGrid').innerHTML=html;
+  $('ssMatrixGrid').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const v=parseFloat(inp.value)||0, m=inp.dataset.m;
+      if(m==='A') SSM.A[+inp.dataset.i][+inp.dataset.j]=v;
+      else if(m==='B') SSM.B[+inp.dataset.i]=v;
+      else if(m==='C') SSM.C[+inp.dataset.j]=v;
+      else SSM.D=v;
+      syncFromSS();
+    });
+  });
+}
+
+function syncFromSS(){
+  const G=ssToTF(SSM.A, SSM.B, SSM.C, SSM.D);
+  SS_TF=G;
+  $('tfNum').value = G.num.map(v=>fx(v,4)).join(', ');
+  $('tfDen').value = G.den.map(v=>fx(v,4)).join(', ');
+  renderSSPreview();
+}
+function syncFromTF(){
+  const num=parseNums($('tfNum').value), den=parseNums($('tfDen').value);
+  if(!den.length || den.every(v=>Math.abs(v)<1e-12)){ $('ssNote').textContent='Mianownik nie mo\u017ce by\u0107 zerowy.'; return; }
+  SS_TF={num,den};
+  const ss=tfToSS(num,den);
+  if(ss){
+    SSM.A=ss.A; SSM.B=ss.B; SSM.C=ss.C; SSM.D=ss.D;
+    setOrderButtons(ss.A.length);
+    renderMatrixGrid();
+  }
+  renderSSPreview();
+}
+function renderSSPreview(){
+  $('ssTfPreview').innerHTML = fracHtml(SS_TF.num, SS_TF.den, 'G(s) = ');
+  const trimmed=SS_TF.den.slice(); while(trimmed.length>1 && Math.abs(trimmed[0])<1e-12) trimmed.shift();
+  $('ssNote').textContent = 'Rz\u0105d n = '+(trimmed.length-1)+'. Model stanowy (postać sterowalna) i transmitancja s\u0105 teraz sp\u00f3jne.';
+}
+function setOrderButtons(n){
+  [...$('ssOrder').children].forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.n===n)));
+}
+function resetOrder(n){
+  // domyslny, stabilny uklad rzedu n: (s+1)^n w mianowniku, licznik = stala
+  let den=[1];
+  for(let i=0;i<n;i++) den=polymul(den,[1,1]);
+  const num=[den[den.length-1]];  // K dobrane tak, by G(0)=1
+  const ss=tfToSS(num,den);
+  SSM.A=ss.A; SSM.B=ss.B; SSM.C=ss.C; SSM.D=ss.D;
+  SS_TF={num,den};
+  $('tfNum').value=num.map(v=>fx(v,4)).join(', ');
+  $('tfDen').value=den.map(v=>fx(v,4)).join(', ');
+  renderMatrixGrid(); renderSSPreview();
+}
+
+/* ---------- prosty obwod RLC ---------- */
+const RLC_TOPOS={
+  rlc_c:{label:'Szeregowy RLC \u2014 wyj\u015bcie na C (dolnoprzepustowy II rz.)', family:'rlc', tap:'C', params:['R','L','C'],
+    build:(R,L,Cv)=>({A:[[0,1/Cv],[-1/L,-R/L]], B:[0,1/L], C:[1,0], D:0})},
+  rlc_r:{label:'Szeregowy RLC \u2014 wyj\u015bcie na R (pasmowoprzepustowy)', family:'rlc', tap:'R', params:['R','L','C'],
+    build:(R,L,Cv)=>({A:[[0,1/Cv],[-1/L,-R/L]], B:[0,1/L], C:[0,R], D:0})},
+  rlc_l:{label:'Szeregowy RLC \u2014 wyj\u015bcie na L (g\u00f3rnoprzepustowy II rz.)', family:'rlc', tap:'L', params:['R','L','C'],
+    build:(R,L,Cv)=>({A:[[0,1/Cv],[-1/L,-R/L]], B:[0,1/L], C:[-1,-R], D:1})},
+  rc_lp:{label:'RC \u2014 wyj\u015bcie na C (dolnoprzepustowy I rz.)', family:'rc', tap:'C', params:['R','C'],
+    build:(R,Cv)=>({A:[[-1/(R*Cv)]], B:[1/(R*Cv)], C:[1], D:0})},
+  rc_hp:{label:'RC \u2014 wyj\u015bcie na R (g\u00f3rnoprzepustowy I rz.)', family:'rc', tap:'R', params:['R','C'],
+    build:(R,Cv)=>({A:[[-1/(R*Cv)]], B:[1/(R*Cv)], C:[-1], D:1})},
+  rl_lp:{label:'RL \u2014 wyj\u015bcie na R (dolnoprzepustowy I rz.)', family:'rl', tap:'R', params:['R','L'],
+    build:(R,L)=>({A:[[-R/L]], B:[1/L], C:[R], D:0})},
+};
+const RLC_DEF={R:1, L:1, C:1};
+let rlcCurrent='rlc_c';
+
+function renderRlcParams(){
+  const t=RLC_TOPOS[rlcCurrent];
+  $('rlcParams').innerHTML = t.params.map(k=>
+    `<div class="coef-chip"><span class="lbl">${k}</span><input type="number" step="0.1" min="0.01" value="${RLC_DEF[k]}" data-p="${k}" style="width:64px; background:transparent; border:0; font:inherit; color:inherit"></div>`
+  ).join('');
+  $('rlcParams').querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input',()=>{ RLC_DEF[inp.dataset.p]=parseFloat(inp.value)||0.01; applyRlc(); });
+  });
+}
+function renderRlcDiagram(){
+  const t=RLC_TOPOS[rlcCurrent];
+  const comp=(name,tapped)=>`<div class="rlc-comp${tapped?' tap':''}">${name}</div>`;
+  const wire=()=>'<div class="rlc-wire"></div>';
+  let parts=[`<span class="rlc-term">u +</span>`, wire()];
+  const order = t.family==='rl' ? ['R','L'] : (t.family==='rc' ? ['R','C'] : ['R','L','C']);
+  order.forEach((c,i)=>{ parts.push(comp(c===''?'':c==='R'?'R':c==='L'?'L':'C', c===t.tap)); if(i<order.length-1) parts.push(wire()); });
+  parts.push(wire()); parts.push(`<span class="rlc-term">u \u2212</span>`);
+  $('rlcDiagram').innerHTML = `<div class="rlc-fig">${parts.join('')}</div>`;
+  $('rlcNote').textContent = 'Elementy w szeregu mi\u0119dzy zaciskami \u017ar\u00f3d\u0142a; wyj\u015bcie y to napi\u0119cie na zaznaczonym elemencie (dla wyj\u015bcia na L: y = u \u2212 v_R \u2212 v_C, st\u0105d bezpo\u015brednie przej\u015bcie D=1).';
+}
+function applyRlc(){
+  const t=RLC_TOPOS[rlcCurrent];
+  const vals=t.params.map(k=>Math.max(1e-6,RLC_DEF[k]||1e-6));
+  const ss=t.build(...vals);
+  SSM.A=ss.A; SSM.B=ss.B; SSM.C=ss.C; SSM.D=ss.D;
+  setOrderButtons(ss.A.length);
+  renderMatrixGrid();
+  syncFromSS();
 }
 
 /* ===================== analiza ===================== */
@@ -1836,7 +2842,64 @@ tgl.onclick=()=>{
   $('ctlLabel').textContent=open?'Zamknij panel':'Sterowanie';
 };
 
+/* ---------- karty (widoki) ---------- */
+const TABS=['analiza','routh','block','ss'];
+let CUR_TAB='analiza';
+function setTab(name){
+  if(!TABS.includes(name)) return;
+  CUR_TAB=name;
+  TABS.forEach(t=>{
+    $('tabpanel-'+t).classList.toggle('active', t===name);
+    $('tabbtn-'+t).setAttribute('aria-selected', String(t===name));
+  });
+  const showRail = (name==='analiza'||name==='routh');
+  $('shellAnalysis').style.display = showRail? '' : 'none';
+  document.body.classList.toggle('ctl-open', false);
+  $('ctlToggle').style.display = showRail? '' : 'none';
+  if(name==='routh' && typeof refreshRouth==='function') refreshRouth();
+  if(name==='block' && typeof refreshBlock==='function') refreshBlock();
+  if(name==='ss' && typeof refreshSS==='function') refreshSS();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tabbar button[data-tab]').forEach(b=>{
+  b.addEventListener('click',()=>setTab(b.dataset.tab));
+});
+
+$('rlcTopo').innerHTML = Object.entries(RLC_TOPOS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+$('rlcTopo').value=rlcCurrent;
+$('rlcTopo').onchange=()=>{ rlcCurrent=$('rlcTopo').value; renderRlcParams(); renderRlcDiagram(); applyRlc(); };
+renderRlcParams(); renderRlcDiagram();
+
+$('ssOrder').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; resetOrder(+b.dataset.n); setOrderButtons(+b.dataset.n); };
+$('tfNum').addEventListener('change',syncFromTF);
+$('tfDen').addEventListener('change',syncFromTF);
+$('ssFromAnalysis').onclick=()=>{
+  const D=polyFrom('p'); let Dfull=D.slice(); for(let i=0;i<S.nu;i++) Dfull=polymul(Dfull,[1,0]);
+  const N=polyFrom('z').map(v=>v*K());
+  $('tfNum').value=N.map(v=>fx(v,4)).join(', ');
+  $('tfDen').value=Dfull.map(v=>fx(v,4)).join(', ');
+  syncFromTF();
+};
+$('ssApply').onclick=()=>{ if(adoptTF(SS_TF.num, SS_TF.den)) setTab('analiza'); };
+applyRlc();
+
+laneAddControls($('addMain'), BD.main, refreshBlock);
+laneAddControls($('addBranch'), BD.branch.chain, refreshBlock);
+laneAddControls($('addFb'), BD.fb.chain, refreshBlock);
+$('branchOn').onchange=()=>{ BD.branch.on=$('branchOn').checked; refreshBlock(); };
+$('fbOn').onchange=()=>{ BD.fb.on=$('fbOn').checked; refreshBlock(); };
+$('branchSign').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; BD.branch.sign=+b.dataset.v;
+  [...$('branchSign').children].forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshBlock(); };
+$('fbSign').onclick=e=>{ const b=e.target.closest('button'); if(!b) return; BD.fb.sign=+b.dataset.v;
+  [...$('fbSign').children].forEach(x=>x.setAttribute('aria-pressed', x===b)); refreshBlock(); };
+$('bdApply').onclick=()=>{
+  const G=computeG();
+  if(adoptTF(G.num, G.den)) setTab('analiza');
+};
+refreshBlock();
+
 renderPZ(); syncControls(); refresh();
+setTab('analiza');
 
 /* ===================== kontrola na przykładach z instrukcji ===================== */
 (function selftest(){
