@@ -2,6 +2,7 @@ import { RLC_DEF, RLC_TOPOS, RLC_UNIT } from './circuits.js';
 import { C } from './complex.js';
 import { $, col } from './dom.js';
 import { rlcSchematic } from './fig-circuit.js';
+import { fitFig } from './fig-common.js';
 import { simDiagram } from './fig-sim.js';
 import { esc, fracHtml, fx } from './format.js';
 import { polymul } from './poly.js';
@@ -14,18 +15,20 @@ function parseNums(str){ return str.split(/[,\s]+/).filter(x=>x.length).map(Numb
 
 function renderMatrixGrid(){
   const n=SSM.A.length;
-  let html='<div class="mtx-block"><span class="mtx-lbl">A =</span>';
+  // Each label stays glued to its own matrix, so a row that wraps on a narrow
+  // screen breaks between matrices and never between "D =" and its field.
+  let html='<div class="mtx-block"><div class="mtx-pair"><span class="mtx-lbl">A =</span>';
   html+=`<div class="mtx-grid" style="grid-template-columns:repeat(${n},1fr)">`;
   for(let i=0;i<n;i++) for(let j=0;j<n;j++) html+=`<input type="number" step="0.1" value="${SSM.A[i][j]}" data-m="A" data-i="${i}" data-j="${j}">`;
-  html+='</div>';
-  html+='<span class="mtx-lbl">B =</span><div class="mtx-col" style="grid-template-columns:1fr">';
-  for(let i=0;i<n;i++) html+=`<input type="number" step="0.1" value="${SSM.B[i]}" data-m="B" data-i="${i}">`;
   html+='</div></div>';
-  html+='<div class="mtx-block"><span class="mtx-lbl">C =</span>';
+  html+='<div class="mtx-pair"><span class="mtx-lbl">B =</span><div class="mtx-col" style="grid-template-columns:1fr">';
+  for(let i=0;i<n;i++) html+=`<input type="number" step="0.1" value="${SSM.B[i]}" data-m="B" data-i="${i}">`;
+  html+='</div></div></div>';
+  html+='<div class="mtx-block"><div class="mtx-pair"><span class="mtx-lbl">C =</span>';
   html+=`<div class="mtx-grid" style="grid-template-columns:repeat(${n},1fr)">`;
   for(let j=0;j<n;j++) html+=`<input type="number" step="0.1" value="${SSM.C[j]}" data-m="C" data-i="0" data-j="${j}">`;
-  html+='</div>';
-  html+=`<span class="mtx-lbl">D =</span><div class="mtx-scalar"><input type="number" step="0.1" value="${SSM.D}" data-m="D"></div>`;
+  html+='</div></div>';
+  html+=`<div class="mtx-pair"><span class="mtx-lbl">D =</span><div class="mtx-scalar"><input type="number" step="0.1" value="${SSM.D}" data-m="D"></div></div>`;
   html+='</div>';
   $('ssMatrixGrid').innerHTML=html;
   $('ssMatrixGrid').querySelectorAll('input').forEach(inp=>{
@@ -65,6 +68,7 @@ function renderSSPreview(){
   $('ssTfPreview').innerHTML = fracHtml(SSM.tf.num, SSM.tf.den, 'G(s) = ');
   const sim=simDiagram(SSM.tf);
   $('simDiagram').innerHTML = sim.svg || '<p class="note" style="padding:8px 12px">'+esc(sim.note)+'</p>';
+  fitFig($('simDiagram'));
   $('simNote').textContent = sim.svg? sim.note : '';
   const trimmed=SSM.tf.den.slice(); while(trimmed.length>1 && Math.abs(trimmed[0])<1e-12) trimmed.shift();
   $('ssNote').textContent = 'Rz\u0105d n = '+(trimmed.length-1)+'. Model stanowy (postać sterowalna) i transmitancja s\u0105 teraz sp\u00f3jne.';
@@ -109,6 +113,7 @@ export function renderRlcParams(){
 export function renderRlcDiagram(){
   const t=RLC_TOPOS[RLC_SEL.key];
   $('rlcDiagram').innerHTML = rlcSchematic(t, RLC_DEF);
+  fitFig($('rlcDiagram'));
   $('rlcNote').innerHTML = 'Wz\u00f3r z r\u00f3wna\u0144 obwodu: <b>'+esc(t.eq)+'</b>. '
     + 'Przerywana ramka pokazuje, na czym mierzone jest wyj\u015bcie y \u2014 st\u0105d bior\u0105 si\u0119 macierze C i D poni\u017cej.';
 }

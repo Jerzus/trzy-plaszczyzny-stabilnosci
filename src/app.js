@@ -4,6 +4,7 @@ import { bodeComponents } from './bode-terms.js';
 import { RLC_TOPOS } from './circuits.js';
 import { $ } from './dom.js';
 import { EXPLAIN, EXP_LABEL, showExp } from './explain.js';
+import { fitFig } from './fig-common.js';
 import { fmt, fx } from './format.js';
 import { K, S, adoptTF, charPolyCoeffs, polyFrom } from './model.js';
 import { BSTATE, bdFromAnalysis, initBlockDrag, refreshBlock } from './panel-block.js';
@@ -190,8 +191,10 @@ function setTab(name){
     if($('expDlg').open) $('expDlg').close();
   }
   if(name==='routh') refreshRouth(LAST || analyse());
-  if(name==='block' && typeof refreshBlock==='function') refreshBlock();
-  if(name==='ss' && typeof refreshSS==='function') refreshSS();
+  if(name==='block') refreshBlock();
+  // Figures drawn while their panel was hidden could not be measured, so they
+  // are still uncropped: re-fit them now that the panel has a layout.
+  $('tabpanel-'+name).querySelectorAll('.figwrap').forEach(fitFig);
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.tabbar button[data-tab]').forEach(b=>{

@@ -1,6 +1,7 @@
 import { BD, BLOCK_TYPES, bdPath, computeG, mkBlock } from './blocks.js';
 import { $ } from './dom.js';
 import { BW, blockSvg } from './fig-block.js';
+import { fitFig } from './fig-common.js';
 import { esc, fracHtml, fx } from './format.js';
 import { K, S } from './model.js';
 import { box } from './plot-core.js';
@@ -132,6 +133,7 @@ function renderBdSel(){
 
 export function refreshBlock(){
   $('bdiagView').innerHTML = blockSvg(BSTATE.sel);
+  fitFig($('bdiagView'));
   renderBdSel();
   const G=computeG();
   $('bdTfBox').innerHTML = fracHtml(G.num, G.den, 'G(s) = ');

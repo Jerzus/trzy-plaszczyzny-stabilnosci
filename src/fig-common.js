@@ -12,4 +12,18 @@ export function sumSym(x,y,sg){
   return o;
 }
 
-/* ---------- block diagram as a draggable SVG figure ---------- */
+/* Every figure lays out on a fixed grid with rows reserved for the parallel
+   branch, the feedback path and the b-taps — and most systems draw none of
+   them, so the SVG is mostly empty air. Crop it to what was actually drawn.
+   Needs a laid-out element: getBBox is empty while the tab panel is hidden. */
+export function fitFig(box){
+  const svg=box.querySelector('svg.fig');
+  if(!svg) return;
+  let b; try{ b=svg.getBBox(); }catch{ return; }
+  if(!b.width || !b.height) return;
+  const p=12, w=Math.ceil(b.width+2*p), h=Math.ceil(b.height+2*p);
+  svg.setAttribute('viewBox', `${b.x-p} ${b.y-p} ${w} ${h}`);
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  svg.style.setProperty('--figw', w+'px');
+}

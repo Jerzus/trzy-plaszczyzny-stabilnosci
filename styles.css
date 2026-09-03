@@ -446,13 +446,12 @@ table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,tran
 .axis-k .pt{position:absolute; top:9px; width:2px; height:14px; background:var(--muted)}
 .axis-k .zero{position:absolute; top:5px; width:1px; height:22px; background:var(--ink); opacity:.5}
 
-}
-
 /* ---------- state-space panel ---------- */
 .mtx-block{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
-.mtx-block .mtx-lbl{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); width:14px}
+.mtx-pair{display:flex; align-items:center; gap:10px}
+.mtx-block .mtx-lbl{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); white-space:nowrap}
 .mtx-grid{display:inline-grid; gap:4px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:var(--panel-2)}
-.mtx-grid input{
+.mtx-grid input, .mtx-col input{
   width:52px; text-align:center; background:var(--plot-bg); border:1px solid var(--line); border-radius:3px;
   padding:4px 3px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink);
 }
@@ -520,6 +519,35 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
 .role-note.settled{border-left-color:var(--bad); background:color-mix(in srgb,var(--bad) 8%,transparent)}
 .role-note.open{border-left-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent)}
 .role-note b{font-weight:600}
+
+/* ---------- narrow screens: block diagram / state-model tabs ---------- */
+@media (max-width:940px){
+  /* iOS zooms the whole page when a field under 16px takes focus, and the
+     panel-specific rules below were overriding the global bump by specificity. */
+  input, select{font-size:16px}
+  .coef-chip{font-size:16px}
+  .mtx-grid input, .mtx-col input{width:58px; font-size:15px; padding:7px 3px}
+  .mtx-scalar input{width:62px; font-size:15px; padding:7px 4px}
+  .selprops input[type=number]{width:84px; font-size:16px; padding:7px 8px}
+  .selprops select, .selprops .del{font-size:15px; padding:7px 10px}
+  .figbar select, .figbar button, .figbar .seg button{font-size:15px; padding:8px 11px}
+  .row{flex-wrap:wrap}
+}
+@media (max-width:640px){
+  /* A block diagram is read as a whole and its blocks are dragged by finger, so
+     it scales to the screen instead of sitting in a 520px scroll box. Shrinking
+     stops at 65%: past that the labels stop being readable and scrolling wins. */
+  svg.fig{min-width:0; max-width:none; width:min(var(--figw,520px), max(100%, calc(var(--figw,520px) * .65)))}
+  svg.fig text{font-size:15px}
+  svg.fig text.sm, svg.fig text.sig, svg.fig text.sgn{font-size:13px}
+  .figwrap{padding:8px 4px 12px}
+  .figbar{padding:0 12px 12px; gap:6px}
+  .figbar .grp{flex:1 1 100%; flex-wrap:wrap; justify-content:space-between}
+  .figbar > select, .figbar > button{flex:1 1 auto; min-width:0}
+  .figbar .grp select{flex:1 1 120px; min-width:0}
+  .selprops{padding:10px 12px}
+  .mtx-block{gap:8px}
+}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 
