@@ -1329,7 +1329,7 @@ function bodeComponents(A){
     }
   }
   // 1) constant gain
-  mk({db_:'20log|k|', arg_:'\u2221 k', val:'k = '+fx(kb,4), op:''},
+  mk({db_:'20log|k|', arg_:'arg k', val:'k = '+fx(kb,4), op:''},
      ()=>20*Math.log10(Math.abs(kb)||1e-300), ()=> kb<0? -180:0);
   // 2) integrators
   if(S.nu) mk({db_:'\u221220\u00b7'+S.nu+'\u00b7log \u03c9', arg_:fmt(-90*S.nu,4)+'\u00b0',
@@ -1340,12 +1340,12 @@ function bodeComponents(A){
     const op = f.sgn>0? '+' : '\u2212';
     if(f.order===1){
       const t=f.tau, body='1 '+(t<0?'\u2212':'+')+' '+fx(Math.abs(t),3)+'j\u03c9';
-      mk({db_:'20log|'+body+'|', arg_:'\u2221('+body+')', val:body, op},
+      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op},
          ww=>f.sgn*20*Math.log10(Math.hypot(1, ww*t)),
          ww=>f.sgn*Math.atan(ww*t)*DEG);
     } else {
       const body='1 + 2\u00b7'+fx(f.z,3)+'\u00b7(j\u03c9/'+fx(f.wn,3)+') + (j\u03c9/'+fx(f.wn,3)+')\u00b2';
-      mk({db_:'20log|'+body+'|', arg_:'\u2221('+body+')', val:body, op},
+      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op},
          ww=>{const u=ww/f.wn; return f.sgn*20*Math.log10(Math.hypot(1-u*u, 2*f.z*u));},
          ww=>{const u=ww/f.wn; return f.sgn*Math.atan2(2*f.z*u, 1-u*u)*DEG;});
     }
