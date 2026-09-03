@@ -1,6 +1,6 @@
 # Trzy płaszczyzny stabilności
 
-Projekt na przedmiot **Inżynieria Systemów Dynamicznych** — Politechnika Gdańska.
+Własny projekt interaktywnych materiałów do nauki teorii sterowania ISD na PG.
 
 Interaktywny symulator do analizy i syntezy układów regulacji, podzielony na cztery
 karty w stylu kart przeglądarki:
