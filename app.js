@@ -1618,7 +1618,7 @@ function drawNyquist(A){
 function drawBode(A){
   hotReset('bd');
   const {ctx,w,h}=prep(bdCv);
-  const narrow=w<430, L=narrow?42:52, Rp=narrow?10:14, T=12, B=32, gap=narrow?22:26;
+  const narrow=w<430, L=narrow?54:66, Rp=narrow?10:14, T=12, B=32, gap=narrow?22:26;
   const H=(h-T-B-gap)/2;
   const rm={x:L,y:T,w:w-L-Rp,h:H}, rp={x:L,y:T+H+gap,w:w-L-Rp,h:H};
   const lgx=Math.log10(A.lo), lgh=Math.log10(A.hi);
@@ -1661,8 +1661,11 @@ function drawBode(A){
       ctx.beginPath(); ctx.moveTo(r.x,y); ctx.lineTo(r.x+r.w,y); ctx.stroke();
     }
     ctx.restore();
+    ctx.font='10px "IBM Plex Mono",monospace';
+    ctx.fillStyle=col('--muted');
+    ctx.textAlign='right'; ctx.textBaseline='middle';
     for(const t of tk) ctx.fillText(fmt(t,4)+(ry.deg?'°':''),r.x-6,Y(t));
-    ctx.save(); ctx.translate(12,r.y+r.h/2); ctx.rotate(-Math.PI/2);
+    ctx.save(); ctx.translate(11,r.y+r.h/2); ctx.rotate(-Math.PI/2);
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif'; ctx.fillStyle=col('--muted');
     ctx.fillText(unit,0,0); ctx.restore();
