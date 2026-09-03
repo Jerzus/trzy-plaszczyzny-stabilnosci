@@ -18,14 +18,18 @@ karty w stylu kart przeglądarki:
   przedziały `K`, dla których układ zamknięty jest stabilny, wyznaczone symbolicznie
   (tablica Routha liczona jako funkcje wymierne `K`, granice — z pierwiastków liczników
   pierwszej kolumny).
-- **Schemat blokowy** — ścieżka w przód ze zmienną kolejnością bloków (mnożenie
-  szeregowe jest przemienne — przeciągnij, żeby to sprawdzić), gałąź równoległa i
-  sprzężenie zwrotne; wypadkowe `G(s)` można przenieść jednym kliknięciem do kart
-  Analiza i Routh–Hurwitz.
+- **Schemat blokowy** — rysowany jako prawdziwy schemat (sumatory ze znakami, strzałki,
+  gałąź równoległa nad ścieżką, sprzężenie zwrotne pod nią). Bloki przeciąga się myszą
+  wprost na rysunku: kolejność w szeregu można zmienić, a `G(s)` się nie zmieni — to
+  naoczny dowód przemienności iloczynu. Kliknięcie bloku otwiera edycję typu i wartości;
+  wypadkowe `G(s)` przenosi się jednym kliknięciem do kart Analiza i Routh–Hurwitz.
 - **Model stanowy · RLC** — dwukierunkowa konwersja transmitancja ⟷ model stanowy
   (TF→SS przez postać sterowalną, SS→TF przez algorytm Faddeeva–LeVerriera) rzędu
-  do 4, plus sześć gotowych obwodów RLC/RC/RL z automatycznym wyprowadzeniem
-  transmitancji i modelu stanowego z równań obwodu.
+  do 4, rysowana dodatkowo jako **schemat symulacyjny**: łańcuch integratorów ze
+  współczynnikami `aᵢ` w sprzężeniach i `bᵢ` w torach w przód. Do tego siedem obwodów
+  RLC/RC/RL rysowanych prawdziwymi symbolami elektrycznymi (rezystor, cewka,
+  kondensator, węzły, zaciski `u₁`/`u₂`), z transmitancją i modelem stanowym
+  wyprowadzonymi z równań obwodu.
 
 ## Tryb wyjaśnień
 
