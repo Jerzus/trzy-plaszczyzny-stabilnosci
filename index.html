@@ -512,6 +512,14 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
 .selprops .del{background:none; border:1px solid var(--line); border-radius:3px; color:var(--muted); cursor:pointer; padding:5px 10px; font-size:12px}
 .selprops .del:hover{border-color:var(--bad); color:var(--bad)}
 
+.role-note{
+  margin:0 16px 14px; padding:10px 14px; border-radius:3px; font-size:12.5px; line-height:1.55;
+  border-left:3px solid var(--line); background:var(--panel-2); color:var(--ink);
+}
+.role-note.settled{border-left-color:var(--bad); background:color-mix(in srgb,var(--bad) 8%,transparent)}
+.role-note.open{border-left-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.role-note b{font-weight:600}
+
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 </style>
 
@@ -681,9 +689,10 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
 
   <section class="card">
     <header>
-      <h2>Tablica Routha dla bieżącego K</h2>
-      <p>Pełny test konieczny i wystarczający: liczba zmian znaku w pierwszej kolumnie równa się liczbie pierwiastków w prawej półpłaszczyźnie.</p>
+      <h2 id="routhTableTitle">Tablica Routha dla bieżącego K</h2>
+      <p id="routhTableSub">Liczba zmian znaku w pierwszej kolumnie równa się liczbie pierwiastków w prawej półpłaszczyźnie.</p>
     </header>
+    <div id="routhTableRole"></div>
     <div class="canvas-wrap" style="overflow-x:auto; padding:14px 16px" id="routhTableBox"></div>
     <div class="canvas-wrap" style="padding:0 16px 16px; display:flex; flex-direction:column; gap:10px" id="routhVerdictBox"></div>
     <p class="note" id="routhNote"></p>
@@ -692,8 +701,9 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
   <section class="card">
     <header>
       <h2>Przedziały K</h2>
-      <p>Dla jakich wartości wzmocnienia (jako wolnego parametru rzeczywistego, niezależnie od przełącznika K &lt; 0 w panelu) układ zamknięty jest stabilny.</p>
+      <p>Inne pytanie niż powyżej: nie „czy ten K działa”, tylko „czy istnieje jakikolwiek K, który działa”. K traktowane jest jako wolny parametr rzeczywisty, niezależnie od przełącznika K &lt; 0 w panelu.</p>
     </header>
+    <div id="routhRangeRole"></div>
     <div class="readout" id="routhRangeSummary" style="grid-template-columns:1fr 1fr"></div>
     <div class="canvas-wrap" style="padding:14px 16px" id="routhIntervals"></div>
     <p class="note">Każda granica przedziału to wartość K, przy której jakieś miejsce zerowe równania charakterystycznego przechodzi przez oś urojąą — czyli dokładnie to, co wcześniej znajdował wielomian pomocniczy przy wierszu zerowym w tabeli Routha.</p>
@@ -722,6 +732,7 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
         <select id="addType"></select>
         <button id="addBlkBtn" type="button">+ dodaj</button>
       </div>
+      <button id="bdFromAn" type="button">← wczytaj z karty Analiza</button>
       <div class="grp">
         <label class="chk"><input type="checkbox" id="branchOn"> gałąź równoległa</label>
         <div class="seg" id="branchSign" style="width:auto; flex:none">
@@ -1163,6 +1174,20 @@ function refreshRouth(){
     ? '<span class="verdict ok">warunek konieczny spe\u0142niony \u2014 stabilno\u015b\u0107 mo\u017cliwa, ale jeszcze nie potwierdzona</span>'
     : '<span class="verdict no">warunek konieczny NIE spe\u0142niony \u2014 uk\u0142ad na pewno niestabilny, dalsza tabelka jest zbyteczna</span>';
 
+  // rola tablicy: gdy warunek konieczny odpadł, stabilność jest już rozstrzygnięta
+  // i tablica służy wyłącznie do policzenia, ILE pierwiastków leży w prawej półpłaszczyźnie
+  $('routhTableTitle').textContent = nec.allOk
+    ? 'Tablica Routha dla bie\u017c\u0105cego K'
+    : 'Tablica Routha \u2014 ile pierwiastk\u00f3w le\u017cy w prawej p\u00f3\u0142p\u0142aszczy\u017anie';
+  $('routhTableRole').innerHTML = nec.allOk
+    ? '<div class="role-note open">Warunek konieczny przeszed\u0142, ale to <b>za ma\u0142o</b>, \u017ceby orzec stabilno\u015b\u0107. '
+      + 'Rozstrzyga dopiero liczba zmian znaku w pierwszej kolumnie poni\u017cej.</div>'
+    : '<div class="role-note settled">Stabilno\u015b\u0107 zosta\u0142a ju\u017c rozstrzygni\u0119ta wy\u017cej: warunek konieczny nie jest spe\u0142niony, wi\u0119c uk\u0142ad '
+      + '<b>na pewno jest niestabilny</b> \u2014 tablicy nie trzeba budowa\u0107, \u017ceby to wiedzie\u0107. '
+      + 'Poni\u017cej jest ona nadal wa\u017cna i przydatna, ale odpowiada teraz na w\u0119\u017csze pytanie: '
+      + '<b>ile dok\u0142adnie</b> pierwiastk\u00f3w le\u017cy w prawej p\u00f3\u0142p\u0142aszczy\u017anie. '
+      + 'Kryterium Routha nie wymaga spe\u0142nienia warunku koniecznego \u2014 zliczanie zmian znaku dzia\u0142a dla dowolnych znak\u00f3w wsp\u00f3\u0142czynnik\u00f3w.</div>';
+
   const rt = routhNumeric(cNow);
   if(rt){
     const rows=rt.rows, W=rt.W, n=rt.n;
@@ -1209,6 +1234,10 @@ function refreshRouth(){
 
   // przedzialy K
   const necR = necessaryRangeK();
+  $('routhRangeRole').innerHTML = nec.allOk
+    ? ''
+    : '<div class="role-note open">Bie\u017c\u0105ce K odpad\u0142o w warunku koniecznym, ale to <b>nie znaczy, \u017ce sekcja jest bezu\u017cyteczna</b> \u2014 '
+      + 'w\u0142a\u015bnie teraz jest najbardziej przydatna: pokazuje, czy jak\u0105kolwiek warto\u015bci\u0105 wzmocnienia da si\u0119 ten uk\u0142ad ustabilizowa\u0107.</div>';
   $('routhRangeSummary').innerHTML =
     `<div><dt>warunek konieczny (szybki, niewystarczaj\u0105cy)</dt><dd>${necR.impossible? 'niespe\u0142nialny dla \u017cadnego K' : '('+fmtK(necR.lo)+' , '+fmtK(necR.hi)+')'}</dd></div>`;
 
@@ -1295,6 +1324,14 @@ const BLOCK_TYPES = {
             tf:pr=>({num:[1], den:[pr.T,1]})},
   lead:    {label:'Cz\u0142on r\u00f3\u017cniczkuj\u0105cy', short:'(Ts+1)',   params:[{key:'T',label:'T',def:1,step:0.1}],
             tf:pr=>({num:[pr.T,1], den:[1]})},
+  deriv:   {label:'R\u00f3\u017cniczkowanie', short:'s',        params:[],
+            tf:()=>({num:[1,0], den:[1]})},
+  osc:     {label:'Cz\u0142on II rz\u0119du',    short:'1/(T\u00b2s\u00b2+2\u03b6Ts+1)',
+            params:[{key:'T',label:'T',def:1,step:0.05},{key:'z',label:'\u03b6',def:0.5,step:0.05}],
+            tf:pr=>({num:[1], den:[pr.T*pr.T, 2*pr.z*pr.T, 1]})},
+  oscz:    {label:'Czw\u00f3rnik II rz\u0119du (licznik)', short:'T\u00b2s\u00b2+2\u03b6Ts+1',
+            params:[{key:'T',label:'T',def:1,step:0.05},{key:'z',label:'\u03b6',def:0.5,step:0.05}],
+            tf:pr=>({num:[pr.T*pr.T, 2*pr.z*pr.T, 1], den:[1]})},
 };
 let BLK_ID=1;
 const mkBlock=type=>{
@@ -1330,6 +1367,44 @@ function computeG(){
   return G;
 }
 
+/* rozklad transmitancji z karty Analiza na bloki biblioteki:
+   G_o(s) = K * PROD(s-z_i) / ( s^nu * PROD(s-p_i) )
+   kazdy czynnik sprowadzamy do postaci znormalizowanej (Ts+1) albo
+   (T^2 s^2 + 2zT s + 1), a wyciagniete stale zbieramy w jednym bloku K */
+function bdFromAnalysis(){
+  const chain=[]; let gain=K(); const skipped=[];
+  for(let i=0;i<S.nu;i++) chain.push(mkBlock('integ'));
+
+  for(const it of S.items.filter(x=>x.on && x.kind==='p')){
+    if(Math.abs(it.im)<1e-9){
+      const a=-it.re;                                   // czynnik (s + a)
+      if(Math.abs(a)<1e-9){ chain.push(mkBlock('integ')); continue; }
+      const b=mkBlock('inertia'); b.p.T=1/a; chain.push(b); gain/=a;
+    } else {
+      const wn=Math.hypot(it.re,it.im);
+      const b=mkBlock('osc'); b.p.T=1/wn; b.p.z=-it.re/wn; chain.push(b); gain/=wn*wn;
+    }
+  }
+  for(const it of S.items.filter(x=>x.on && x.kind==='z')){
+    if(Math.abs(it.im)<1e-9){
+      const a=-it.re;
+      if(Math.abs(a)<1e-9){ chain.push(mkBlock('deriv')); continue; }
+      const b=mkBlock('lead'); b.p.T=1/a; chain.push(b); gain*=a;
+    } else {
+      const wn=Math.hypot(it.re,it.im);
+      const b=mkBlock('oscz'); b.p.T=1/wn; b.p.z=-it.re/wn; chain.push(b); gain*=wn*wn;
+    }
+  }
+  if(S.Td>0) skipped.push('op\u00f3\u017anienie T_d = '+fx(S.Td)+' s (biblioteka blok\u00f3w nie ma cz\u0142onu e^(\u2212sT))');
+
+  const g=mkBlock('gain'); g.p.k=+gain.toPrecision(12); chain.unshift(g);
+  BD.main=chain;
+  BD.branch.on=false; BD.fb.on=false;
+  BSEL=null;
+  refreshBlock();
+  return skipped;
+}
+
 /* ---------- schemat blokowy jako rysunek SVG z przeciaganiem ---------- */
 let BSEL=null;               // {path, idx} zaznaczonego bloku
 const bdPath=k=> k==='main'? BD.main : (k==='branch'? BD.branch.chain : BD.fb.chain);
@@ -1339,6 +1414,9 @@ function blkLabel(b){
   if(b.type==='gain')    return [ 'K', 'K = '+fx(b.p.k,3) ];
   if(b.type==='integ')   return [ '1/s', '' ];
   if(b.type==='inertia') return [ '1/(Ts+1)', 'T = '+fx(b.p.T,3) ];
+  if(b.type==='deriv')   return [ 's', '' ];
+  if(b.type==='osc')     return [ '1/(T\u00b2s\u00b2+2\u03b6Ts+1)', 'T = '+fx(b.p.T,3)+' , \u03b6 = '+fx(b.p.z,3) ];
+  if(b.type==='oscz')    return [ 'T\u00b2s\u00b2+2\u03b6Ts+1', 'T = '+fx(b.p.T,3)+' , \u03b6 = '+fx(b.p.z,3) ];
   return [ 'Ts+1', 'T = '+fx(b.p.T,3) ];
 }
 
@@ -3143,6 +3221,17 @@ function setTab(name){
   $('shellAnalysis').style.display = showRail? '' : 'none';
   document.body.classList.toggle('ctl-open', false);
   $('ctlToggle').style.display = showRail? '' : 'none';
+  // tryb wyjaśnień działa wyłącznie na karcie Analiza (tam są klikalne wielkości
+  // i punkty na wykresach) -- na pozostałych przycisk znika, a tryb sam się wyłącza
+  const canExplain = (name==='analiza');
+  $('explainBtn').style.display = canExplain? '' : 'none';
+  if(EX.on){
+    EX.on=false;
+    document.body.classList.remove('explain');
+    $('explainBtn').setAttribute('aria-pressed','false');
+    $('expHint').hidden=true;
+    if($('expDlg').open) $('expDlg').close();
+  }
   if(name==='routh' && typeof refreshRouth==='function') refreshRouth();
   if(name==='block' && typeof refreshBlock==='function') refreshBlock();
   if(name==='ss' && typeof refreshSS==='function') refreshSS();
@@ -3171,6 +3260,11 @@ $('ssApply').onclick=()=>{ if(adoptTF(SS_TF.num, SS_TF.den)) setTab('analiza'); 
 applyRlc();
 
 initBlockDrag();
+$('bdFromAn').onclick=()=>{
+  const skipped=bdFromAnalysis();
+  $('bdNoteBox').textContent = (skipped.length? 'Pomini\u0119to: '+skipped.join('; ')+'. ' : '')
+    + $('bdNoteBox').textContent;
+};
 $('addType').innerHTML = Object.entries(BLOCK_TYPES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
 $('addBlkBtn').onclick=()=>{
   const where=$('addWhere').value;
