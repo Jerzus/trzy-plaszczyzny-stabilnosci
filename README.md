@@ -71,12 +71,33 @@ rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji
 
 **Wersja online: https://jerzus.github.io/trzy-plaszczyzny-stabilnosci/**
 
-Lokalnie — otwórz `index.html` w przeglądarce. Nic więcej — brak zależności, brak budowania,
-brak serwera.
+**Lokalnie** — potrzebny jest dowolny serwer statyczny, bo kod jest podzielony na
+moduły ES, a przeglądarki blokują je na `file://`:
 
-Projekt to trzy pliki: `index.html` (struktura), `styles.css` i `app.js`. Świadomie
-bez modułów ES i bez bundlera — `type="module"` wymagałby serwera, bo CORS blokuje
-moduły na `file://`, a otwieranie dwuklikiem jest tu założeniem.
+```
+python -m http.server 8000
+```
+
+i otwórz `http://localhost:8000`. Nadal **brak zależności i brak budowania** —
+przeglądarka ładuje moduły bezpośrednio.
+
+## Struktura
+
+`index.html` (sama struktura), `styles.css` oraz `src/` — 25 modułów ES ułożonych
+w warstwy, bez ani jednego cyklu w grafie zależności:
+
+| warstwa | moduły |
+|---|---|
+| bez zależności | `complex.js`, `format.js`, `dom.js` |
+| matematyka | `poly.js`, `model.js`, `analysis.js`, `routh.js`, `statespace.js`, `blocks.js`, `circuits.js`, `bode-terms.js` |
+| rysowanie | `plot-core.js`, `plot-locus.js`, `plot-nyquist.js`, `plot-bode.js`, `fig-common.js`, `fig-block.js`, `fig-sim.js`, `fig-circuit.js` |
+| panele | `panel-tf.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js`, `explain.js` |
+| wejście | `app.js` — okablowanie, karty, autotest |
+
+Reguła jest jedna: moduł niższej warstwy nigdy nie sięga do wyższej. Dlatego
+rysunki dostają stan jako argument (`blockSvg(sel)`, `rlcSchematic(t, vals)`,
+`simDiagram(tf)`) zamiast czytać go z panelu, a `adoptTF` nie przerysowuje
+interfejsu — robi to wywołujący.
 
 ## Co można ustawiać
 
