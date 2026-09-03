@@ -465,7 +465,7 @@ table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,tran
 
 /* ---------- vector figures: block diagram, circuit, simulation diagram ---------- */
 .figwrap{padding:10px 8px 14px; overflow-x:auto}
-svg.fig{display:block; max-width:100%; height:auto; min-width:min(520px, var(--figw,520px)); margin-inline:auto; touch-action:none}
+svg.fig{display:block; max-width:100%; height:auto; min-width:min(520px, var(--figw,520px)); margin-inline:auto}
 svg.fig .w{stroke:var(--ink); stroke-width:1.7; fill:none; stroke-linecap:round}
 svg.fig .w.dim{stroke:var(--muted); stroke-width:1.4}
 svg.fig .node{fill:var(--ink)}
@@ -479,7 +479,7 @@ svg.fig .comp.fillbg{fill:var(--panel)}
 svg.fig .tapbox{fill:none; stroke:var(--accent); stroke-width:1.6; stroke-dasharray:4 3}
 
 /* draggable blocks of the block diagram */
-svg.fig g.blk2{cursor:grab}
+svg.fig g.blk2{cursor:grab; touch-action:none}
 svg.fig g.blk2 rect.body{fill:color-mix(in srgb,var(--accent) 10%,var(--panel)); stroke:var(--accent); stroke-width:1.7; rx:4}
 svg.fig g.blk2.sel rect.body{stroke-width:2.6; fill:color-mix(in srgb,var(--accent) 22%,var(--panel))}
 svg.fig g.blk2.drag{opacity:.4}
