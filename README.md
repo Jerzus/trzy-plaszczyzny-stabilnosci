@@ -75,10 +75,10 @@ rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji
 moduły ES, a przeglądarki blokują je na `file://`:
 
 ```
-python -m http.server 8000
+python -m http.server 8765
 ```
 
-i otwórz `http://localhost:8000`. Nadal **brak zależności i brak budowania** —
+i otwórz `http://localhost:8765`. Nadal **brak zależności i brak budowania** —
 przeglądarka ładuje moduły bezpośrednio.
 
 ## Struktura
