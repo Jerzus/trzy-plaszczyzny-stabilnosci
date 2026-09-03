@@ -91,7 +91,8 @@ w warstwy, bez ani jednego cyklu w grafie zależności:
 | bez zależności | `complex.js`, `format.js`, `dom.js` |
 | matematyka | `poly.js`, `model.js`, `analysis.js`, `routh.js`, `statespace.js`, `blocks.js`, `circuits.js`, `bode-terms.js` |
 | rysowanie | `plot-core.js`, `plot-locus.js`, `plot-nyquist.js`, `plot-bode.js`, `fig-common.js`, `fig-block.js`, `fig-sim.js`, `fig-circuit.js` |
-| panele | `panel-tf.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js`, `explain.js` |
+| panele | `panel-tf.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js` |
+| wyjaśnienia | `explain.js` (dyspozytor) + `explain-helpers.js` i pięć tablic tematycznych `explain-*.js` |
 | wejście | `app.js` — okablowanie, karty, autotest |
 
 Reguła jest jedna: moduł niższej warstwy nigdy nie sięga do wyższej. Dlatego

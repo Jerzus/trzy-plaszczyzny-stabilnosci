@@ -1,5 +1,5 @@
-import { sgn } from './format.js';
 import { $ } from './dom.js';
+import { sgn } from './format.js';
 
 export const SUMR=15;
 

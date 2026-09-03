@@ -1,11 +1,9 @@
-import { ssToTF, tfToSS } from './statespace.js';
-import { fullStableRanges, routhNumeric } from './routh.js';
-import { bodeComponents } from './bode-terms.js';
 import { analyse } from './analysis.js';
 import { BD, BLOCK_TYPES, bdPath, computeG, mkBlock } from './blocks.js';
+import { bodeComponents } from './bode-terms.js';
 import { RLC_TOPOS } from './circuits.js';
 import { $ } from './dom.js';
-import { EXP_LABEL, showExp } from './explain.js';
+import { EXPLAIN, EXP_LABEL, showExp } from './explain.js';
 import { fmt, fx } from './format.js';
 import { K, S, adoptTF, charPolyCoeffs, polyFrom } from './model.js';
 import { BSTATE, bdFromAnalysis, initBlockDrag, refreshBlock } from './panel-block.js';
@@ -17,6 +15,8 @@ import { EX, hotHit } from './plot-core.js';
 import { drawRootLocus } from './plot-locus.js';
 import { drawNyquist } from './plot-nyquist.js';
 import { polymul } from './poly.js';
+import { fullStableRanges, routhNumeric } from './routh.js';
+import { ssToTF, tfToSS } from './statespace.js';
 
 function renderPZ(){
   $('pzList').innerHTML='';
@@ -281,4 +281,4 @@ setTab('analiza');
 window.ISD = { S, BD, SSM, EX, analyse, refresh, setTab, K, charPolyCoeffs,
                routhNumeric, fullStableRanges, computeG, bodeComponents,
                ssToTF, tfToSS, adoptTF, bdFromAnalysis, refreshBlock,
-               renderPZ, syncControls, get LAST(){ return LAST; } };
+               renderPZ, syncControls, showExp, EXPLAIN, get LAST(){ return LAST; } };

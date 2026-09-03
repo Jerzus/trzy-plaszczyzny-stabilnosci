@@ -1,5 +1,5 @@
-import { K } from './model.js';
 import { fx } from './format.js';
+import { K } from './model.js';
 import { kpAdd, polymul } from './poly.js';
 
 export const BLOCK_TYPES = {
