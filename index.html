@@ -132,6 +132,7 @@
     <header>
       <h2>Charakterystyki Bodego</h2>
       <p>Moduł w dB i faza w stopniach, oś ω logarytmiczna. Linie pionowe: ω<sub>c</sub> (przecięcie 0 dB) i ω<sub>180</sub> (przecięcie −180°).</p>
+      <label class="chk" style="margin-left:auto"><input type="checkbox" id="bodeParts" checked> pokaż składniki</label>
     </header>
     <div class="canvas-wrap bode"><canvas id="bdCv"></canvas></div>
     <div class="legend">
@@ -139,7 +140,9 @@
       <span><i style="background:var(--amber)"></i>φ(ω)</span>
       <span><i style="background:var(--bad)"></i>linie odniesienia 0 dB i −180°</span>
       <span>▲ pulsacje łamania (<span style="color:var(--muted)">biegun</span> / <span style="color:var(--good)">zero</span>)</span>
+      <span><i style="background:var(--sc1); height:0; border-top:2px dashed var(--sc1)"></i>składniki (linia przerywana, numer przy prawej krawędzi)</span>
     </div>
+    <div class="bode-terms" id="bodeTerms"></div>
     <p class="note" id="bdNote"></p>
   </section>
 

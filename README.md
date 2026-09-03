@@ -31,6 +31,22 @@ karty w stylu kart przeglądarki:
   kondensator, węzły, zaciski `u₁`/`u₂`), z transmitancją i modelem stanowym
   wyprowadzonymi z równań obwodu.
 
+## Rozkład Bodego na składniki
+
+Wykres Bodego rysuje każdy czynnik osobno, linią przerywaną we własnym kolorze —
+tak, jakby ten czynnik występował sam. Pod wykresem wypisane są obie sumy,
+`20·log₁₀|G(jω)|` w dB oraz `arg G(jω)` w stopniach, a każdy wyraz jest opatrzony
+tym samym numerem i kolorem co odpowiadająca mu krzywa.
+
+Czynniki sprowadzane są do postaci czasowej `(1 + τjω)` używanej na wykładzie, a
+stałe wyciągnięte przed nawias zbierane są w jednym składniku `k`. Dla przykładu
+z wykładu `G(s) = 5(s+10)/((s−0,2)(s+100))` daje to dokładnie
+`k = −2,5`, `+(1 + 0,1jω)`, `−(1 − 5jω)`, `−(1 + 0,01jω)`.
+
+Poprawność rozkładu jest sprawdzana numerycznie: suma składników musi odtworzyć
+krzywą wypadkową co do bitu, również dla par zespolonych, biegunów w prawej
+półpłaszczyźnie, ujemnego `K` i opóźnienia transportowego.
+
 ## Tryb wyjaśnień
 
 Przełącznik **Tryb wyjaśnień** w nagłówku uaktywnia warstwę dydaktyczną. Każda wyliczona
@@ -57,6 +73,10 @@ rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji
 
 Lokalnie — otwórz `index.html` w przeglądarce. Nic więcej — brak zależności, brak budowania,
 brak serwera.
+
+Projekt to trzy pliki: `index.html` (struktura), `styles.css` i `app.js`. Świadomie
+bez modułów ES i bez bundlera — `type="module"` wymagałby serwera, bo CORS blokuje
+moduły na `file://`, a otwieranie dwuklikiem jest tu założeniem.
 
 ## Co można ustawiać
 

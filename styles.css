@@ -2,6 +2,10 @@
   --bg:#e7ebef; --panel:#f8fafc; --panel-2:#eef2f6; --plot-bg:#fdfefe;
   --ink:#0f151c; --muted:#5d6b7a; --line:#ccd5de; --grid:#e3e9ef;
   --accent:#0f6d7d; --accent-soft:#93c3ca; --amber:#a75f16;
+  /* Bode component palette. Fixed order, never cycled; validated with the
+     data-viz palette checker (adjacent pairlist, light surface #fdfefe). */
+  --sc1:#2a78d6; --sc2:#eb6834; --sc3:#1baf7a; --sc4:#eda100;
+  --sc5:#e87ba4; --sc6:#008300; --sc7:#4a3aa7;
   --bad:#bd3229; --good:#16714c; --shadow:0 1px 2px rgba(15,33,45,.08);
 }
 @media (prefers-color-scheme: dark){
@@ -9,6 +13,10 @@
     --bg:#0d1218; --panel:#141c25; --panel-2:#19232e; --plot-bg:#0f1720;
     --ink:#dfe7ef; --muted:#8798a8; --line:#26323f; --grid:#1c2732;
     --accent:#3fc9c0; --accent-soft:#236e6c; --amber:#e0a44a;
+  --sc1:#3987e5; --sc2:#d95926; --sc3:#199e70; --sc4:#c98500;
+  --sc5:#d55181; --sc6:#008300; --sc7:#9085e9;
+    --sc1:#3987e5; --sc2:#d95926; --sc3:#199e70; --sc4:#c98500;
+    --sc5:#d55181; --sc6:#008300; --sc7:#9085e9;
     --bad:#f0685e; --good:#4fd193; --shadow:0 1px 2px rgba(0,0,0,.4);
   }
 }
@@ -55,8 +63,8 @@ button,input,select{font:inherit; color:inherit}
   padding:18px 20px 40px; display:flex; flex-direction:column; gap:22px;
   position:sticky; top:0; max-height:100vh; overflow-y:auto;
 }
-/* na waskim ekranie panel staje sie szuflada nasuwana od dolu,
-   zeby wykres nad nia byl widoczny w trakcie przesuwania suwaka */
+/* On a narrow screen the control panel becomes a drawer sliding up from the
+   bottom, so the plot above it stays visible while a slider is dragged. */
 .ctl-toggle{display:none}
 @media (max-width:940px){
   .rail{
@@ -220,7 +228,7 @@ canvas{display:block; width:100%; height:100%}
 .note code{font-family:"IBM Plex Mono",monospace; font-size:11px; background:var(--panel-2); padding:1px 4px; border-radius:2px}
 
 footer{padding:0 24px 40px; color:var(--muted); font-size:11.5px; max-width:80ch}
-/* palec nie jest kursorem: wieksze uchwyty, 16px w polach (blokuje autozoom iOS) */
+/* A finger is not a cursor: larger handles, and 16px inputs to stop iOS auto-zoom. */
 @media (max-width:940px){
   input[type=range]{height:36px}
   input[type=range]::-webkit-slider-thumb{width:22px; height:22px; margin-top:-9.5px}
@@ -261,7 +269,7 @@ footer{padding:0 24px 40px; color:var(--muted); font-size:11.5px; max-width:80ch
   .note, footer{font-size:11px}
   footer{padding:0 12px 32px}
 }
-/* ---------- tryb wyjasnien ---------- */
+/* ---------- explanation mode ---------- */
 .explain-btn{
   margin-left:auto; display:inline-flex; align-items:center; gap:8px;
   background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
@@ -355,7 +363,7 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
   .exp-f{font-size:12px} .exp-steps{font-size:11.5px}
   .explain-btn{margin-left:0; width:100%; justify-content:center; padding:9px 13px}
 }
-/* ---------- pasek kart (widoki symulatora) ---------- */
+/* ---------- tab bar (simulator views) ---------- */
 .tabbar{
   display:flex; gap:3px; padding:0 24px; background:var(--bg);
   border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:thin;
@@ -385,7 +393,7 @@ dialog#expDlg::backdrop{background:rgba(6,10,14,.55); backdrop-filter:blur(2px)}
   .tab-full{padding:14px 12px 84px; gap:14px}
 }
 
-/* ---------- Routh--Hurwitz ---------- */
+/* ---------- Routh-Hurwitz ---------- */
 .routh-warn{
   margin:0 16px 14px; padding:10px 14px; border-radius:3px; font-size:12.5px; line-height:1.55;
   background:color-mix(in srgb,var(--amber) 12%,transparent);
@@ -440,7 +448,7 @@ table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,tran
 
 }
 
-/* ---------- model stanowy ---------- */
+/* ---------- state-space panel ---------- */
 .mtx-block{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
 .mtx-block .mtx-lbl{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--muted); width:14px}
 .mtx-grid{display:inline-grid; gap:4px; padding:6px 8px; border:1px solid var(--line); border-radius:4px; background:var(--panel-2)}
@@ -455,7 +463,7 @@ table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,tran
 }
 
 
-/* ---------- rysunki wektorowe: schemat blokowy, obwod, schemat symulacyjny ---------- */
+/* ---------- vector figures: block diagram, circuit, simulation diagram ---------- */
 .figwrap{padding:10px 8px 14px; overflow-x:auto}
 svg.fig{display:block; max-width:100%; height:auto; min-width:min(520px, var(--figw,520px)); margin-inline:auto; touch-action:none}
 svg.fig .w{stroke:var(--ink); stroke-width:1.7; fill:none; stroke-linecap:round}
@@ -470,7 +478,7 @@ svg.fig .comp{stroke:var(--ink); stroke-width:1.7; fill:none}
 svg.fig .comp.fillbg{fill:var(--panel)}
 svg.fig .tapbox{fill:none; stroke:var(--accent); stroke-width:1.6; stroke-dasharray:4 3}
 
-/* przeciagalne bloki schematu blokowego */
+/* draggable blocks of the block diagram */
 svg.fig g.blk2{cursor:grab}
 svg.fig g.blk2 rect.body{fill:color-mix(in srgb,var(--accent) 10%,var(--panel)); stroke:var(--accent); stroke-width:1.7; rx:4}
 svg.fig g.blk2.sel rect.body{stroke-width:2.6; fill:color-mix(in srgb,var(--accent) 22%,var(--panel))}
@@ -514,3 +522,19 @@ svg.fig g.blk2 rect.body:hover{fill:color-mix(in srgb,var(--accent) 18%,var(--pa
 .role-note b{font-weight:600}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+
+/* ---------- Bode decomposition into individual factors ---------- */
+.bode-terms{padding:0 16px 16px; display:flex; flex-direction:column; gap:12px}
+.bterm-row{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 4px;
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.9}
+.bterm-row > .lhs{font-weight:600; color:var(--ink); margin-right:4px}
+.bterm{display:inline-flex; align-items:center; gap:5px; padding:2px 7px 2px 5px;
+  border:1px solid var(--line); border-radius:3px; background:var(--panel-2); white-space:nowrap}
+.bterm .idx{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:15px; height:15px; border-radius:50%; flex:none;
+  font-family:"IBM Plex Sans Condensed",sans-serif; font-size:10px; font-weight:600;
+  color:#fff; background:var(--bc);
+}
+.bterm .op{color:var(--muted); font-weight:600; margin-right:2px}
+.bterm-legend{font-size:11.5px; color:var(--muted); max-width:80ch}

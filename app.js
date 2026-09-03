@@ -1,4 +1,4 @@
-/* ===================== liczby zespolone ===================== */
+/* ===================== complex numbers ===================== */
 const C=(re,im=0)=>({re,im});
 const csub=(a,b)=>({re:a.re-b.re, im:a.im-b.im});
 const cmul=(a,b)=>({re:a.re*b.re-a.im*b.im, im:a.re*b.im+a.im*b.re});
@@ -8,7 +8,7 @@ const carg=a=>Math.atan2(a.im,a.re);
 const cexp=a=>{const m=Math.exp(a.re); return {re:m*Math.cos(a.im), im:m*Math.sin(a.im)};};
 const DEG=180/Math.PI;
 
-/* ===================== stan ===================== */
+/* ===================== application state ===================== */
 const S={
   Kmag:10, Kneg:false, nu:0, Td:0, zoom:1,
   items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]
@@ -24,7 +24,7 @@ function expand(kind){
   return out;
 }
 
-/* G_o(s) — ścisłe, z opóźnieniem */
+/* G_o(s), exact, including the transport delay */
 function Gof(s){
   let num=C(K(),0);
   for(const z of expand('z')) num=cmul(num,csub(s,z));
@@ -36,7 +36,8 @@ function Gof(s){
   return g;
 }
 
-/* moduł i faza ciągła dla ω>0 — faza liczona przez sumę wkładów (Dodatek B) */
+/* magnitude and continuous phase for w>0; phase as a sum of per-factor
+   contributions, following Appendix B of the course notes */
 function resp(w){
   const s=C(0,w);
   let mag=Math.abs(K()), ph=(K()<0?-Math.PI:0) - S.nu*Math.PI/2 - S.Td*w;
@@ -46,11 +47,11 @@ function resp(w){
   return {mag,ph};
 }
 
-/* ===================== wielomiany ===================== */
+/* ===================== polynomials ===================== */
 const polymul=(a,b)=>{const r=new Array(a.length+b.length-1).fill(0);
   for(let i=0;i<a.length;i++) for(let j=0;j<b.length;j++) r[i+j]+=a[i]*b[j];
   return r;};
-function polyFrom(kind){           // rzeczywiste współczynniki, malejąco
+function polyFrom(kind){           // real coefficients, highest power first
   let p=[1];
   for(const it of S.items) if(it.on && it.kind===kind){
     p = Math.abs(it.im)>1e-12
@@ -64,7 +65,7 @@ function polyvalC(c,s){let r=C(0,0); for(const k of c){ r=cmul(r,s); r.re+=k; } 
 function polyRoots(a){
   let c=a.slice();
   while(c.length>1 && Math.abs(c[0])<1e-14) c.shift();
-  while(c.length>1 && Math.abs(c[c.length-1])<1e-14) c.pop();   // pierwiastki w zerze
+  while(c.length>1 && Math.abs(c[c.length-1])<1e-14) c.pop();   // roots at the origin
   const n=c.length-1;
   if(n<1) return [];
   c=c.map(v=>v/c[0]);
@@ -83,8 +84,8 @@ function polyRoots(a){
   }
   return r;
 }
-// jak polyRoots, ale odzyskuje pierwiastki DOKŁADNIE w s=0 (albo K=0 itp.),
-// które polyRoots po cichu odrzuca przycinając zerowy wyraz wolny
+// Same as polyRoots, but recovers roots exactly at zero (s=0, K=0, ...) which
+// polyRoots silently drops when it trims a vanishing constant term.
 function fullRoots(coeffsDesc){
   let c=coeffsDesc.slice();
   while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();
@@ -98,14 +99,15 @@ const polyder=c=>{const n=c.length-1; return n<1?[0]:c.slice(0,-1).map((v,i)=>v*
 const polyaddK=(D,N,k)=>{const L=Math.max(D.length,N.length),o=new Array(L).fill(0);
   for(let i=0;i<L;i++) o[L-1-i]=(D[D.length-1-i]||0)+k*(N[N.length-1-i]||0); return o;};
 
-/* mianownik i licznik bez aproksymacji opóźnienia — do regul geometrycznych */
+/* numerator and denominator without the delay approximation, for the
+   geometric root-locus rules */
 function ND(){
   let N=polyFrom('z'), D=polyFrom('p');
   for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
   return {N,D};
 }
 
-/* równanie charakterystyczne D(s) + k·N(s), opóźnienie przez Padé(1,1) */
+/* characteristic equation D(s) + k*N(s); delay via a first-order Pade */
 function charRoots(k){
   let N=polyFrom('z'), D=polyFrom('p');
   for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
@@ -121,13 +123,14 @@ function charRoots(k){
 
 
 /* =====================================================================
-   ROUTH--HURWITZ: warunek konieczny, tablica dla biezacego K,
-   przedzialy K (symbolicznie w K jako wolnym parametrze rzeczywistym).
+   ROUTH-HURWITZ: necessary condition, the array for the current K, and the
+   stable K intervals (solved symbolically, treating K as a free real
+   parameter).
    ===================================================================== */
 
-/* wielomian charakterystyczny D(s)+K*N(s), z tym samym przyblizeniem
-   Pade(1,1) opoznienia co reszta aplikacji (charRoots) -- zachowuje
-   spojnosc, ale NIE jest scisle, gdy Td>0 (patrz baner w UI) */
+/* Characteristic polynomial D(s)+K*N(s), using the same first-order Pade
+   delay approximation as the rest of the app (charRoots). Consistent, but
+   NOT exact once Td>0 -- the UI shows a banner saying so. */
 function charPolyCoeffs(k){
   let N=polyFrom('z'), D=polyFrom('p');
   for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
@@ -137,7 +140,7 @@ function charPolyCoeffs(k){
   const Dp=D.length<L? new Array(L-D.length).fill(0).concat(D): D;
   return Dp.map((d,i)=>d+k*(Np[i]||0));
 }
-/* to samo, ale jako para [a_i,b_i] tak ze c_i(K)=a_i+b_i*K */
+/* same thing, but as pairs [a_i,b_i] so that c_i(K) = a_i + b_i*K */
 function charPolyOfK(){
   let N=polyFrom('z'), D=polyFrom('p');
   for(let i=0;i<S.nu;i++) D=polymul(D,[1,0]);
@@ -148,7 +151,7 @@ function charPolyOfK(){
   return Dp.map((d,i)=>[d, Np[i]||0]);
 }
 
-/* ---- prosta arytmetyka wielomianow (K jako zmienna, malejaco) ---- */
+/* ---- minimal polynomial arithmetic in K, highest power first ---- */
 const kpAdd=(a,b)=>{const L=Math.max(a.length,b.length),o=new Array(L).fill(0);
   for(let i=0;i<a.length;i++) o[L-a.length+i]+=a[i];
   for(let i=0;i<b.length;i++) o[L-b.length+i]+=b[i];
@@ -157,15 +160,15 @@ const kpSub=(a,b)=>kpAdd(a,b.map(v=>-v));
 const kpTrim=a=>{let i=0; while(i<a.length-1 && Math.abs(a[i])<1e-12) i++; return a.slice(i);};
 const kpEval=(a,x)=>{let r=0; for(const c of a) r=r*x+c; return r;};
 
-/* ulamek wielomianow w K: {num,den}, den domyslnie [1] */
+/* rational function of K as {num,den}; den defaults to [1] */
 const fracMk=(num,den)=>({num, den:den||[1]});
 const fracMul=(f,g)=>fracMk(polymul(f.num,g.num), polymul(f.den,g.den));
 const fracSub=(f,g)=>fracMk(kpSub(polymul(f.num,g.den), polymul(g.num,f.den)), polymul(f.den,g.den));
 const fracDiv=(f,g)=>fracMk(polymul(f.num,g.den), polymul(f.den,g.num));
 const ZEROFRAC=fracMk([0]);
 
-/* ---- tablica Routha dla konkretnych, liczbowych wspolczynnikow ---- */
-// zwraca {rows, W, events, firstCol, signs, Z}
+/* ---- Routh array for concrete numeric coefficients ---- */
+// returns {rows, W, events, firstCol, signs, Z}
 function routhNumeric(cDesc){
   let c=cDesc.slice();
   while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();          // usun zera wiodace
@@ -204,7 +207,7 @@ function routhNumeric(cDesc){
   return {rows, W, n, events, firstCol, signs, Z};
 }
 
-/* warunek konieczny: wszystkie c_i tego samego znaku co wiodacy */
+/* necessary condition: every c_i shares the sign of the leading one */
 function necessaryCheck(cDesc){
   let c=cDesc.slice();
   while(c.length>1 && Math.abs(c[0])<1e-12) c.shift();
@@ -213,10 +216,10 @@ function necessaryCheck(cDesc){
   return {items, allOk: items.every(it=>it.ok), lead};
 }
 
-/* ---- tablica Routha SYMBOLICZNIE w K (ulamki wielomianow) ---- */
-// ponytail: brak obslugi degeneracji "caly wiersz zerowy" w wersji symbolicznej
-// (rzadki przypadek szczegolny) -- numeryczna ewaluacja pojedynczych K
-// (routhNumeric) i tak wychwytuje go poprawnie przy odczycie danego K.
+/* ---- Routh array solved symbolically in K, as rational functions ---- */
+// ponytail: the symbolic path does not handle the degenerate "all-zero row"
+// case (a rare special case) -- evaluating a single K numerically via
+// routhNumeric still detects it correctly for the value actually shown.
 function routhSymbolic(){
   const cK=charPolyOfK();
   const n=cK.length-1;
@@ -240,8 +243,8 @@ function routhSymbolic(){
   return {rows, n, W};
 }
 
-/* krytyczne K: rzeczywiste pierwiastki licznikow wszystkich wpisow
-   pierwszej kolumny tablicy symbolicznej */
+/* critical K values: the real roots of the numerators of every first-column
+   entry of the symbolic array */
 function realRootsK(numDesc){
   return fullRoots(numDesc).filter(r=>Math.abs(r.im)<1e-6).map(r=>r.re);
 }
@@ -260,11 +263,11 @@ function criticalKs(){
   return uniq;
 }
 
-/* warunek konieczny jako pojedyncze przedzialy [lo,hi] w K (przeciecie) */
+/* necessary condition reduced to a single [lo,hi] interval in K */
 function necessaryRangeK(){
   const cK=charPolyOfK();
-  let lead=cK[0][0]+cK[0][1]*0; // a_n przy K=0 -- do ustalenia orientacji znaku
-  // je\u015bli wsp\u00f3\u0142czynnik wiod\u0105cy sam zale\u017cy od K (b\u22600), orientacj\u0119 bierzemy z a-cz\u0119\u015bci
+  let lead=cK[0][0]+cK[0][1]*0; // a_n at K=0, used to fix the sign orientation
+  // if the leading coefficient itself depends on K, take the orientation from its constant part
   const sgnLead = (cK[0][0]!==0? Math.sign(cK[0][0]) : (cK[0][1]!==0? Math.sign(cK[0][1]) : 1)) || 1;
   let lo=-Infinity, hi=Infinity, impossible=false, impossiblePow=null;
   for(const [a,b] of cK){
@@ -280,8 +283,8 @@ function necessaryRangeK(){
   return {lo,hi,impossible};
 }
 
-/* pelne przedzialy stabilnosci z liczby zmian znaku w kazdym przedziale
-   wyznaczonym przez punkty krytyczne */
+/* full stability intervals, from the sign-change count sampled inside each
+   interval delimited by the critical K values */
 function fullStableRanges(){
   const crit=criticalKs();
   const bounds=[-Infinity, ...crit, Infinity];
@@ -301,7 +304,7 @@ function fullStableRanges(){
   return out;
 }
 
-/* ---------- render karty Routha ---------- */
+/* ---------- Routh tab rendering ---------- */
 function fmtK(v){ return isFinite(v)? fx(v) : (v>0?'+\u221e':'\u2212\u221e'); }
 function polyToHtml(c,label){
   const n=c.length-1, parts=[];
@@ -330,8 +333,8 @@ function refreshRouth(){
     ? '<span class="verdict ok">warunek konieczny spe\u0142niony \u2014 stabilno\u015b\u0107 mo\u017cliwa, ale jeszcze nie potwierdzona</span>'
     : '<span class="verdict no">warunek konieczny NIE spe\u0142niony \u2014 uk\u0142ad na pewno niestabilny, dalsza tabelka jest zbyteczna</span>';
 
-  // rola tablicy: gdy warunek konieczny odpadł, stabilność jest już rozstrzygnięta
-  // i tablica służy wyłącznie do policzenia, ILE pierwiastków leży w prawej półpłaszczyźnie
+  // What the array is for: once the necessary condition fails, stability is
+  // already settled, and the array only answers HOW MANY roots sit in the RHP.
   $('routhTableTitle').textContent = nec.allOk
     ? 'Tablica Routha dla bie\u017c\u0105cego K'
     : 'Tablica Routha \u2014 ile pierwiastk\u00f3w le\u017cy w prawej p\u00f3\u0142p\u0142aszczy\u017anie';
@@ -388,7 +391,7 @@ function refreshRouth(){
     $('routhVerdictBox').innerHTML='';
   }
 
-  // przedzialy K
+  // stable K intervals
   const necR = necessaryRangeK();
   $('routhRangeRole').innerHTML = nec.allOk
     ? ''
@@ -426,10 +429,10 @@ function refreshRouth(){
 
 
 /* =====================================================================
-   SCHEMAT BLOKOWY: sciezka w przod (przestawialna), galaz rownolegla,
-   sprzezenie zwrotne. Kazdy blok ma wlasna (num,den); laczenie szeregowe
-   to mnozenie wielomianow, rownolegle i sprzezenie -- standardowe wzory
-   algebry schematow blokowych.
+   BLOCK DIAGRAM: a reorderable forward path, a parallel branch and a
+   feedback path. Every block carries its own (num,den); a series connection
+   multiplies polynomials, while the parallel and feedback connections use
+   the standard block-algebra reduction formulas.
    ===================================================================== */
 
 function fracHtml(numDesc,denDesc,leadLabel){
@@ -438,8 +441,8 @@ function fracHtml(numDesc,denDesc,leadLabel){
   return `<span class="lead">${esc(leadLabel)}</span><span class="stack"><span>${esc(numS)}</span><span>${esc(denS)}</span></span>`;
 }
 
-/* przenosi obliczone G(s)=N(s)/D(s) do reprezentacji K/nu/bieguny-zera
-   uzywanej przez karty Analiza i Routh-Hurwitz */
+/* Push a computed G(s)=N(s)/D(s) into the K / nu / poles-zeros representation
+   that the Analysis and Routh-Hurwitz tabs consume. */
 function adoptTF(Ndesc,Ddesc){
   let N=Ndesc.slice(), D=Ddesc.slice();
   while(N.length>1 && Math.abs(N[0])<1e-12) N.shift();
@@ -523,10 +526,10 @@ function computeG(){
   return G;
 }
 
-/* rozklad transmitancji z karty Analiza na bloki biblioteki:
+/* Decompose the Analysis tab transfer function into library blocks:
    G_o(s) = K * PROD(s-z_i) / ( s^nu * PROD(s-p_i) )
-   kazdy czynnik sprowadzamy do postaci znormalizowanej (Ts+1) albo
-   (T^2 s^2 + 2zT s + 1), a wyciagniete stale zbieramy w jednym bloku K */
+   Every factor is normalised to (Ts+1) or (T^2 s^2 + 2zT s + 1), and the
+   constants pulled out along the way are collected into a single gain block. */
 function bdFromAnalysis(){
   const chain=[]; let gain=K(); const skipped=[];
   for(let i=0;i<S.nu;i++) chain.push(mkBlock('integ'));
@@ -561,9 +564,9 @@ function bdFromAnalysis(){
   return skipped;
 }
 
-/* jeden wspolny wezel sumacyjny dla WSZYSTKICH schematow: kolko o stalym
-   promieniu, a znaki stoja przy strzalkach wejsciowych, na zewnatrz kola
-   (tak sie to rysuje w podreczniku i czyta sie niezaleznie od rozmiaru) */
+/* One summing-junction symbol shared by every diagram: a fixed-radius circle
+   with the signs placed next to the incoming arrows, outside the circle --
+   the textbook convention, and legible at any figure size. */
 const SUMR=15;
 function sumSym(x,y,sg){
   let o=`<circle class="sumc" cx="${x}" cy="${y}" r="${SUMR}"/>`;
@@ -574,7 +577,7 @@ function sumSym(x,y,sg){
   return o;
 }
 
-/* ---------- schemat blokowy jako rysunek SVG z przeciaganiem ---------- */
+/* ---------- block diagram as a draggable SVG figure ---------- */
 let BSEL=null;               // {path, idx} zaznaczonego bloku
 const bdPath=k=> k==='main'? BD.main : (k==='branch'? BD.branch.chain : BD.fb.chain);
 
@@ -606,10 +609,10 @@ function blockSvg(){
   const xOut=(hasBr? xSum2 : mainEnd)+52;
   const xY=xOut+30;
 
-  // galaz rownolegla rozciagnieta miedzy tapem a sum2
+  // parallel branch, stretched between the pick-off point and the output summer
   const brCx=br.map((_,i)=>cx(xTap+34,i));
   const brEnd=br.length? brCx[br.length-1]+BW/2 : xTap;
-  // sprzezenie: bloki miedzy xOut a xSum1 (sygnal plynie w lewo)
+  // feedback blocks between xOut and xSum1 (signal flows right to left)
   const fbCx=fb.map((_,i)=>xOut-70-BW/2-i*(BW+BGAP));
   const fbEnd=fb.length? fbCx[fb.length-1]-BW/2 : xOut;
 
@@ -618,7 +621,7 @@ function blockSvg(){
   const wire=(d,cls)=>`<path class="w${cls?' '+cls:''}" d="${d}" marker-end="url(#ar2)"/>`;
   const plain=(d)=>`<path class="w" d="${d}"/>`;
 
-  // --- sciezka glowna ---
+  // --- forward path ---
   g+=`<text x="${xU}" y="${yM+5}" text-anchor="middle">u</text>`;
   g+=wire(`M ${xU+14} ${yM} L ${xSum1-17} ${yM}`);
   g+=sumSym(xSum1,yM,{l:'+', b: hasFb? (BD.fb.sign>0?'\u2212':'+') : null});
@@ -643,7 +646,7 @@ function blockSvg(){
   g+=wire(`M ${xOut} ${yM} L ${xY-12} ${yM}`);
   g+=`<text x="${xY+2}" y="${yM+5}">y</text>`;
 
-  // --- galaz rownolegla (nad sciezka) ---
+  // --- parallel branch, drawn above the forward path ---
   if(hasBr){
     g+=plain(`M ${xTap} ${yM} L ${xTap} ${yB}`);
     let xb=xTap;
@@ -657,7 +660,7 @@ function blockSvg(){
     g+=`<text class="sm" x="${xTap+6}" y="${(yB+yM)/2}">ga\u0142\u0105\u017a r\u00f3wnoleg\u0142a</text>`;
   }
 
-  // --- sprzezenie zwrotne (pod sciezka), sygnal plynie w lewo ---
+  // --- feedback path, drawn below; signal flows right to left ---
   if(hasFb){
     g+=plain(`M ${xOut} ${yM} L ${xOut} ${yF}`);
     let xf=xOut;
@@ -687,9 +690,9 @@ function blkG(b,path,i,cxv,cyv){
     + `</g>`;
 }
 
-/* przeciaganie blokow: obsluga zdarzen pointer ORAZ mouse (niektore srodowiska
-   wysylaja tylko te drugie), delegacja na stalym kontenerze, wiec nasluchy nie
-   mnoza sie przy kazdym przerysowaniu SVG */
+/* Block dragging. Handles pointer AND mouse events, because some environments
+   only emit the latter. Listeners are delegated to the stable container so they
+   do not pile up every time the SVG is re-rendered. */
 let BDRAG=null, BD_POINTER=false;
 const bdSvgEl=()=>$('bdSvg');
 function bdToSvg(cx,cy){
@@ -735,7 +738,7 @@ function bdEnd(){
     arr.splice(dest,0,item);
     BSEL={path:d.path, idx:dest};
   } else {
-    BSEL={path:d.path, idx:d.idx};      // klikniecie bez przesuniecia = zaznaczenie
+    BSEL={path:d.path, idx:d.idx};      // a click without movement means select, not reorder
   }
   refreshBlock();
 }
@@ -782,10 +785,10 @@ function refreshBlock(){
 
 
 /* =====================================================================
-   MODEL STANOWY <-> TRANSMITANCJA (SISO) + PROSTY OBWOD RLC
-   TF -> SS: postac sterowalna (companion form).
-   SS -> TF: algorytm Faddeeva-LeVerriera (rownoczesnie wielomian
-   charakterystyczny i licznik, tylko dodawanie/mnozenie macierzy).
+   STATE SPACE <-> TRANSFER FUNCTION (SISO) plus simple RLC circuits.
+   TF -> SS: controllable canonical (companion) form.
+   SS -> TF: Faddeev-LeVerrier, which yields the characteristic polynomial
+   and the numerator together using only matrix add/multiply.
    ===================================================================== */
 
 function matI(n){ return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0)); }
@@ -830,7 +833,7 @@ function tfToSS(numIn,denIn){
   if(n<1) return null;
   const a=den.map(v=>v/den[0]);
   let num=numIn.slice();
-  if(num.length>n+1) num=num.slice(num.length-(n+1));   // ponytail: uk\u0142ady w\u0142a\u015bciwe, cz\u0119\u015b\u0107 niew\u0142a\u015bciwa obcinana
+  if(num.length>n+1) num=num.slice(num.length-(n+1));   // ponytail: proper systems only; any improper part is truncated
   while(num.length<n+1) num=[0,...num];
   const b=num.map(v=>v/den[0]);
   const A=Array.from({length:n},()=>new Array(n).fill(0));
@@ -843,7 +846,7 @@ function tfToSS(numIn,denIn){
   return {A,B,C:Cr,D};
 }
 
-/* ---------- stan panelu ---------- */
+/* ---------- panel state ---------- */
 const SSM={ A:[[0,1],[-4,-3]], B:[0,1], C:[4,0], D:0 };
 let SS_TF={num:[0,4], den:[1,3,4]};
 
@@ -908,7 +911,7 @@ function setOrderButtons(n){
   [...$('ssOrder').children].forEach(b=>b.setAttribute('aria-pressed', String(+b.dataset.n===n)));
 }
 function resetOrder(n){
-  // domyslny, stabilny uklad rzedu n: (s+1)^n w mianowniku, licznik = stala
+  // default stable system of order n: (s+1)^n denominator, constant numerator
   let den=[1];
   for(let i=0;i<n;i++) den=polymul(den,[1,1]);
   const num=[den[den.length-1]];  // K dobrane tak, by G(0)=1
@@ -921,7 +924,7 @@ function resetOrder(n){
 }
 
 
-/* ---------- schemat symulacyjny (lancuch integratorow) z G(s) ---------- */
+/* ---------- simulation diagram: integrator chain built from G(s) ---------- */
 /* G(s) = (b0 s^n + b1 s^(n-1) + ... + bn) / (s^n + a1 s^(n-1) + ... + an)
    E = U - (a1/s + a2/s^2 + ... + an/s^n)E ,  Y = (b0 + b1/s + ... + bn/s^n)E   */
 function simDiagram(){
@@ -946,16 +949,16 @@ function simDiagram(){
   const dim=(d)=>`<path class="w dim" d="${d}" marker-end="url(#ar3)"/>`;
   const gainBox=(x,y,val)=>`<rect class="comp fillbg" x="${x-25}" y="${y-15}" width="50" height="30"/>`
       +`<text x="${x}" y="${y+5}" text-anchor="middle">${fx(val,3)}</text>`;
-  // wezel sumacyjny: tam gdzie sygnaly sie LACZA, musi byc sumator, a nie kropka
-  // (kropka na linii oznacza rozgalezienie jednego sygnalu, nie dodawanie)
+  // Where signals JOIN there must be a summing junction, not a dot: a dot on a
+  // line means one signal branching out, not addition.
 
-  // sumator wejsciowy
+  // input summing junction
   g+=`<text x="${xU}" y="${yInt+5}" text-anchor="middle">u</text>`;
   g+=wire(`M ${xU+13} ${yInt} L ${xSum-SUMR-2} ${yInt}`);
   g+=sumSym(xSum,yInt,{l:'+', b:'\u2212'});
   g+=`<text class="sig" x="${xSum+22}" y="${yInt-10}">E(s)</text>`;
 
-  // lancuch integratorow
+  // integrator chain
   let xp=xSum+SUMR;
   for(let i=0;i<n;i++){
     g+=wire(`M ${xp} ${yInt} L ${icx[i]-IW/2-2} ${yInt}`);
@@ -968,7 +971,7 @@ function simDiagram(){
     else      g+=plain(`M ${xp} ${yInt} L ${xp+26} ${yInt}`);
   }
 
-  // sprzezenia w dol: a_i z wyjscia i-tego integratora do sumatora wejsciowego
+  // feedback taps: a_i from each integrator output back to the input summer
   for(let i=0;i<n;i++){
     const xn=icx[i]+IW/2+26;
     g+=plain(`M ${xn} ${yInt} L ${xn} ${yGain-15}`);
@@ -976,21 +979,21 @@ function simDiagram(){
     g+=plain(`M ${xn} ${yGain+15} L ${xn} ${ySumIn-16}`);
     g+=`<text class="sm" x="${xn+30}" y="${yGain+4}">a${sub(i+1)}</text>`;
   }
-  // szyna sprzezen: sygnal plynie w LEWO, kazde dolaczenie przez sumator
+  // feedback bus: signal flows leftwards, every join through a summing junction
   const fbX=[...Array(n)].map((_,i)=>icx[i]+IW/2+26).sort((u,v)=>v-u);   // od prawej
   let xfb=fbX[0];
-  g+=plain(`M ${xfb} ${ySumIn-16} L ${xfb} ${ySumIn}`);                  // pierwszy tor: rog
+  g+=plain(`M ${xfb} ${ySumIn-16} L ${xfb} ${ySumIn}`);                  // first tap: a plain corner, nothing to sum yet
   for(let i=1;i<fbX.length;i++){
     const x=fbX[i];
-    g+=wire(`M ${xfb} ${ySumIn} L ${x+SUMR+2} ${ySumIn}`);               // z prawej do sumatora
-    g+=wire(`M ${x} ${ySumIn-16} L ${x} ${ySumIn-SUMR-2}`);              // z gory do sumatora
+    g+=wire(`M ${xfb} ${ySumIn} L ${x+SUMR+2} ${ySumIn}`);               // from the right into the summer
+    g+=wire(`M ${x} ${ySumIn-16} L ${x} ${ySumIn-SUMR-2}`);              // from above into the summer
     g+=sumSym(x, ySumIn, {r:'+', t:'+'});
     xfb=x-SUMR;
   }
   g+=plain(`M ${xfb} ${ySumIn} L ${xSum} ${ySumIn}`);
   g+=wire(`M ${xSum} ${ySumIn} L ${xSum} ${yInt+SUMR+2}`);
 
-  // przejscia w gore: b_i z wyjscia i-tego integratora do sumatora wyjsciowego
+  // feedforward taps: b_i from each integrator output to the output summer
   const active=[];
   for(let i=0;i<n;i++){
     if(Math.abs(b[i+1])<1e-12) continue;
@@ -1001,7 +1004,7 @@ function simDiagram(){
     g+=plain(`M ${xn} ${yGainF-15} L ${xn} ${ySumOut+16}`);
     g+=`<text class="sm" x="${xn+30}" y="${yGainF+4}">b${sub(i+1)}</text>`;
   }
-  // b0: bezposrednie przejscie od E
+  // b0: direct feedthrough from E
   if(Math.abs(b[0])>1e-12){
     const xn=xSum+34;
     active.unshift(xn);
@@ -1010,15 +1013,15 @@ function simDiagram(){
     g+=plain(`M ${xn} ${yGainF-15} L ${xn} ${ySumOut+16}`);
     g+=`<text class="sm" x="${xn+30}" y="${yGainF+4}">b\u2080</text>`;
   }
-  // szyna wyjsciowa: kazde kolejne dolaczenie to osobny sumator
+  // output bus: every further join is its own summing junction
   if(active.length){
     active.sort((u,v)=>u-v);
     let xprev=active[0];
-    g+=plain(`M ${xprev} ${ySumOut+16} L ${xprev} ${ySumOut}`);      // pierwszy tor: rog
+    g+=plain(`M ${xprev} ${ySumOut+16} L ${xprev} ${ySumOut}`);      // first tap: a plain corner, nothing to sum yet
     for(let i=1;i<active.length;i++){
       const x=active[i];
-      g+=wire(`M ${xprev} ${ySumOut} L ${x-SUMR-2} ${ySumOut}`);     // z lewej do sumatora
-      g+=wire(`M ${x} ${ySumOut+16} L ${x} ${ySumOut+SUMR+2}`);      // z dolu do sumatora
+      g+=wire(`M ${xprev} ${ySumOut} L ${x-SUMR-2} ${ySumOut}`);     // from the left into the summer
+      g+=wire(`M ${x} ${ySumOut+16} L ${x} ${ySumOut+SUMR+2}`);      // from below into the summer
       g+=sumSym(x, ySumOut, {l:'+', b:'+'});
       xprev=x+SUMR;
     }
@@ -1037,9 +1040,10 @@ function simDiagram(){
    note:'Rz\u0105d n = '+n+'. Wsp\u00f3\u0142czynniki w blokach to a\u1d62 (w d\u00f3\u0142, do sumatora wej\u015bciowego, ze znakiem minus) oraz b\u1d62 (w g\u00f3r\u0119, do wyj\u015bcia) po sprowadzeniu mianownika do postaci monicznej. Wyj\u015bcia kolejnych integrator\u00f3w to E/s, E/s\u00b2, \u2026 \u2014 dok\u0142adnie zmienne stanu modelu poni\u017cej.'};
 }
 
-/* ---------- prosty obwod RLC: symbole elektryczne w SVG ---------- */
-/* topologia = elementy szeregowe wzdluz gornej galezi + elementy bocznikujace
-   po prawej; wyjscie y mierzone na bocznikach (tak rysuje sie to na wykladzie) */
+/* ---------- simple RLC circuits drawn with real component symbols ---------- */
+/* A topology is: series elements along the top branch plus shunt elements on
+   the right; the output y is measured across the shunt, which is how it is
+   drawn in the lecture. */
 const RLC_TOPOS={
   rlc_c:{label:'Szeregowy RLC \u2014 wyj\u015bcie na C (dolnoprzepustowy II rz.)',
     series:['R','L'], shunt:['C'], params:['R','L','C'],
@@ -1074,7 +1078,7 @@ const RLC_DEF={R:1, L:1, C:1};
 const RLC_UNIT={R:'\u03a9', L:'H', C:'F'};
 let rlcCurrent='rlc_c';
 
-/* symbol elementu; (cx,cy) = srodek, vertical => obrocony o 90 stopni */
+/* one component symbol; (cx,cy) is its centre, vertical rotates it by 90 deg */
 function compSym(kind, cx, cy, vertical, valTxt){
   const rot = vertical? ` transform="rotate(90 ${cx} ${cy})"` : '';
   let body='';
@@ -1108,13 +1112,13 @@ function rlcSchematic(){
   const W=xR+96, H=232;
 
   let g='';
-  // zrodlo u1 po lewej
+  // source u1 on the left
   g+=`<circle class="node" cx="${xL}" cy="${yT}" r="3.4"/><circle class="node" cx="${xL}" cy="${yB}" r="3.4"/>`;
   g+=`<path class="w" d="M ${xL} ${yT+8} L ${xL} ${yB-8}"/>`;
   g+=`<path class="w" d="M ${xL-16} ${yB-14} L ${xL-16} ${yT+14}" marker-end="url(#arw)"/>`;
   g+=`<text x="${xL-24}" y="${(yT+yB)/2+5}" text-anchor="end">u\u2081</text>`;
 
-  // gorna galaz: zrodlo -> elementy szeregowe -> wezel
+  // top branch: source -> series elements -> node
   let xPrev=xL;
   t.series.forEach((k,i)=>{
     g+=`<path class="w" d="M ${xPrev} ${yT} L ${sx[i]-20} ${yT}"/>`;
@@ -1122,10 +1126,10 @@ function rlcSchematic(){
     xPrev=sx[i]+20;
   });
   g+=`<path class="w" d="M ${xPrev} ${yT} L ${xR} ${yT}"/>`;
-  // dolna galaz
+  // bottom branch
   g+=`<path class="w" d="M ${xL} ${yB} L ${xR} ${yB}"/>`;
 
-  // boczniki
+  // shunt elements
   t.shunt.forEach((k,i)=>{
     const x=shx[i];
     g+=`<path class="w" d="M ${x} ${yT} L ${x} ${(yT+yB)/2-20}"/>`;
@@ -1136,7 +1140,7 @@ function rlcSchematic(){
     }
   });
 
-  // zaznaczenie miejsca pomiaru + wyjscie u2
+  // measurement highlight and the u2 output terminals
   const xa=shx[0]-38, xb=shx[shx.length-1]+58;
   g+=`<rect class="tapbox" x="${xa}" y="${yT-14}" width="${xb-xa}" height="${yB-yT+28}" rx="6"/>`;
   g+=`<circle class="node" cx="${xR}" cy="${yT}" r="3.4"/><circle class="node" cx="${xR}" cy="${yB}" r="3.4"/>`;
@@ -1174,7 +1178,7 @@ function applyRlc(){
   syncFromSS();
 }
 
-/* ===================== analiza ===================== */
+/* ===================== frequency-domain analysis ===================== */
 function bisect(f,a,b){ for(let i=0;i<70;i++){ const m=Math.sqrt(a*b); (f(a)*f(m)<=0)? b=m : a=m; } return Math.sqrt(a*b); }
 
 function analyse(){
@@ -1190,13 +1194,13 @@ function analyse(){
     const ww=lo*Math.pow(hi/lo,i/(M-1)); const r=resp(ww);
     w.push(ww); mag.push(r.mag); ph.push(r.ph);
   }
-  for(let i=1;i<M;i++){                       // rozwinięcie fazy
+  for(let i=1;i<M;i++){                       // phase unwrapping
     let d=ph[i]-ph[i-1];
     while(d> Math.PI){ph[i]-=2*Math.PI; d=ph[i]-ph[i-1];}
     while(d<-Math.PI){ph[i]+=2*Math.PI; d=ph[i]-ph[i-1];}
   }
 
-  // ω_c : |G| = 1 (pierwsze przejście)
+  // w_c: |G| = 1, first crossing
   let wc=null, pm=null;
   for(let i=1;i<M;i++){
     if((mag[i-1]-1)*(mag[i]-1)<0){
@@ -1207,7 +1211,7 @@ function analyse(){
       break;
     }
   }
-  // ω_180 : przecięcie ujemnej półosi Re, najgorsze (największe |Re|)
+  // w_180: crossing of the negative real axis, worst case (largest |Re|)
   let w180=null, gm=Infinity, reCross=null;
   for(let i=1;i<M;i++){
     const im0=mag[i-1]*Math.sin(ph[i-1]), im1=mag[i]*Math.sin(ph[i]);
@@ -1235,7 +1239,7 @@ function analyse(){
     let d=a-prev; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
     acc+=d; prev=a;
   }
-  { const a=carg(C(path[0].re+1,path[0].im));   // domknięcie półokręgiem w ∞
+  { const a=carg(C(path[0].re+1,path[0].im));   // closing arc at infinity
     let d=a-prev; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI; acc+=d; }
   const Ncw=Math.round(-acc/(2*Math.PI));
   const Popen=P.filter(p=>p.re>1e-9).length;
@@ -1243,13 +1247,13 @@ function analyse(){
 
   const kp = S.nu===0 ? (()=>{ const g=Gof(C(1e-9,0)); return g.re; })() : Infinity;
 
-  /* ---- geometria linii pierwiastkowych wg karty wzorów ---- */
+  /* ---- root-locus geometry, following the course formula sheet ---- */
   const np=P.length+S.nu, nz=Z.length, alpha=np-nz;
   const sumP=P.reduce((a,q)=>a+q.re,0), sumZ=Z.reduce((a,q)=>a+q.re,0);
   const delta = alpha>0 ? (sumP-sumZ)/alpha : null;                    // pkt 3: δ = (Σp − Σz)/(n−m)
   const asymAng = alpha>0 ? [...Array(alpha)].map((_,i)=>{let a=(2*i+1)*180/alpha; while(a>180)a-=360; return a;}) : [];
 
-  // pkt 2: odcinki na osi Re, na prawo od których liczba rzeczywistych zer i biegunów jest nieparzysta
+  // rule 2: real-axis segments with an odd number of real poles and zeros to their right
   const realCrit=[];
   P.forEach(q=>{ if(Math.abs(q.im)<1e-12) realCrit.push(q.re); });
   Z.forEach(q=>{ if(Math.abs(q.im)<1e-12) realCrit.push(q.re); });
@@ -1268,23 +1272,23 @@ function analyse(){
     if(realCrit.filter(v=>v>left-1).length%2===1) segs.push([-Infinity,left]);
   }
 
-  // pkt 4: punkty rozejścia/schodzenia z D(s)N'(s) − D'(s)N(s) = 0
+  // rule 4: breakaway / break-in points from D(s)N'(s) - D'(s)N(s) = 0
   const {N:Np0,D:Dp0}=ND();
   const brk=[];
   {
     const cand=polyRoots(polyaddK(polymul(Dp0,polyder(Np0)), polymul(polyder(Dp0),Np0), -1));
     for(const r of cand){
-      if(Math.abs(r.im)>1e-6) continue;                       // tylko rzeczywiste (pkt 4)
+      if(Math.abs(r.im)>1e-6) continue;                       // real roots only (rule 4)
       const sv=C(r.re,0), nv=polyvalC(Np0,sv), dv=polyvalC(Dp0,sv);
       if(cabs(nv)<1e-12) continue;
       const k=-cdiv(dv,nv).re;                                // k = −D(s)/N(s)
-      if(!(k*Math.sign(K())>1e-12)) continue;                 // wzmocnienie musi byc w kierunku przemiatania
+      if(!(k*Math.sign(K())>1e-12)) continue;                 // the gain must lie in the direction being swept
       if(!segs.some(([a,b])=>r.re>=a-1e-6 && r.re<=b+1e-6)) continue;
       brk.push({s:r.re,k});
     }
   }
 
-  // pulsacje łamania (odwrotnosci stalych czasowych)
+  // corner frequencies, i.e. reciprocals of the time constants
   const corners=[];
   P.forEach(q=>{const v=cabs(q); if(v>1e-9) corners.push({w:v,kind:'p',c:Math.abs(q.im)>1e-12});});
   Z.forEach(q=>{const v=cabs(q); if(v>1e-9) corners.push({w:v,kind:'z',c:Math.abs(q.im)>1e-12});});
@@ -1293,7 +1297,67 @@ function analyse(){
           poles:P,zeros:Z, np,nz,alpha,delta,asymAng,segs,brk,corners,sumP,sumZ};
 }
 
-/* ===================== rysowanie ===================== */
+/* =====================================================================
+   BODE DECOMPOSITION into individual factors, in time-constant form -- the
+   same form used in the lecture notes. Every factor (s - r) is rewritten as
+   a*(1 + tau*s) with tau = -1/r, and the collected constants 'a' fold into a
+   single gain k. That gives:
+     20log|G| = 20log|k| - 20*nu*log(w) + SUM +-20log|1 + tau*jw|
+     arg G    = arg k    - 90*nu        + SUM +-arg(1 + tau*jw)  - 57.3*w*Td
+   ===================================================================== */
+const SLOTS=7;                       // fixed colour order, never cycled
+function bodeComponents(A){
+  const w=A.w, N=w.length, comps=[];
+  const mk=(o,fdb,fph)=>{
+    const db=new Float64Array(N), ph=new Float64Array(N);
+    for(let i=0;i<N;i++){ db[i]=fdb(w[i]); ph[i]=fph(w[i]); }
+    comps.push(Object.assign(o,{db,ph}));
+  };
+  // factors first: each one folds its constant into k
+  let kb=K(); const fac=[];
+  for(const it of S.items.filter(x=>x.on)){
+    const sgn = it.kind==='z' ? 1 : -1;
+    if(Math.abs(it.im)<1e-9){
+      const a=-it.re;
+      if(Math.abs(a)<1e-12) continue;          // a root at the origin belongs to s^nu
+      kb *= sgn>0 ? a : 1/a;
+      fac.push({sgn, order:1, tau:1/a});
+    } else {
+      const wn=Math.hypot(it.re,it.im), z=-it.re/wn;
+      kb *= sgn>0 ? wn*wn : 1/(wn*wn);
+      fac.push({sgn, order:2, wn, z});
+    }
+  }
+  // 1) constant gain
+  mk({db_:'20log|k|', arg_:'\u2221 k', val:'k = '+fx(kb,4), op:''},
+     ()=>20*Math.log10(Math.abs(kb)||1e-300), ()=> kb<0? -180:0);
+  // 2) integrators
+  if(S.nu) mk({db_:'\u221220\u00b7'+S.nu+'\u00b7log \u03c9', arg_:fmt(-90*S.nu,4)+'\u00b0',
+               val:'1/s'+(S.nu>1?sup(S.nu):''), op:'+'},
+              ww=>-20*S.nu*Math.log10(ww), ()=>-90*S.nu);
+  // 3) first- and second-order factors
+  for(const f of fac){
+    const op = f.sgn>0? '+' : '\u2212';
+    if(f.order===1){
+      const t=f.tau, body='1 '+(t<0?'\u2212':'+')+' '+fx(Math.abs(t),3)+'j\u03c9';
+      mk({db_:'20log|'+body+'|', arg_:'\u2221('+body+')', val:body, op},
+         ww=>f.sgn*20*Math.log10(Math.hypot(1, ww*t)),
+         ww=>f.sgn*Math.atan(ww*t)*DEG);
+    } else {
+      const body='1 + 2\u00b7'+fx(f.z,3)+'\u00b7(j\u03c9/'+fx(f.wn,3)+') + (j\u03c9/'+fx(f.wn,3)+')\u00b2';
+      mk({db_:'20log|'+body+'|', arg_:'\u2221('+body+')', val:body, op},
+         ww=>{const u=ww/f.wn; return f.sgn*20*Math.log10(Math.hypot(1-u*u, 2*f.z*u));},
+         ww=>{const u=ww/f.wn; return f.sgn*Math.atan2(2*f.z*u, 1-u*u)*DEG;});
+    }
+  }
+  // 4) transport delay -- contributes nothing to the magnitude
+  if(S.Td>0) mk({db_:null, arg_:'\u221257,3\u00b7\u03c9\u00b7'+fx(S.Td,3), val:'e^(\u2212j\u03c9T_d)', op:'+'},
+                ()=>0, ww=>-ww*S.Td*DEG);
+  comps.forEach((c,i)=>{ c.i=i+1; c.color = i<SLOTS? 'var(--sc'+(i+1)+')' : 'var(--muted)'; });
+  return comps;
+}
+
+/* ===================== canvas plotting ===================== */
 const col=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 function fmt(v,d=3){
@@ -1315,6 +1379,14 @@ function prep(cv){
   ctx.clearRect(0,0,w,h);
   return {ctx,w,h};
 }
+function ticksFrom(a,b,cands){
+  for(const st of cands){
+    if((b-a)/st<=7){ const o=[]; for(let v=Math.ceil(a/st)*st; v<=b+1e-9; v+=st) o.push(+v.toFixed(6)); return o; }
+  }
+  const st=cands[cands.length-1], o=[];
+  for(let v=Math.ceil(a/st)*st; v<=b+1e-9; v+=st) o.push(+v.toFixed(6));
+  return o;
+}
 function ticks(a,b,n){
   const span=(b-a)/Math.max(1,n);
   if(!(span>0)) return [a];
@@ -1327,7 +1399,7 @@ function box(ctx,r){ ctx.fillStyle=col('--plot-bg'); ctx.fillRect(r.x,r.y,r.w,r.
   ctx.strokeStyle=col('--line'); ctx.lineWidth=1; ctx.strokeRect(r.x+.5,r.y+.5,r.w-1,r.h-1); }
 function clipR(ctx,r){ ctx.beginPath(); ctx.rect(r.x,r.y,r.w,r.h); ctx.clip(); }
 
-/* --- płaszczyzna zespolona (linie pierwiastkowe / Nyquist) --- */
+/* --- complex plane, shared by the root locus and the Nyquist plot --- */
 function planeAxes(ctx,r,rng,labels){
   const X=v=>r.x+(v-rng.xmin)/(rng.xmax-rng.xmin)*r.w;
   const Y=v=>r.y+r.h-(v-rng.ymin)/(rng.ymax-rng.ymin)*r.h;
@@ -1363,7 +1435,7 @@ function fitAspect(r,rng){
 function cross(ctx,x,y,s){ ctx.beginPath(); ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s); ctx.moveTo(x-s,y+s); ctx.lineTo(x+s,y-s); ctx.stroke(); }
 function circ(ctx,x,y,s){ ctx.beginPath(); ctx.arc(x,y,s,0,7); ctx.stroke(); }
 
-/* ---- rejestr obszarow klikalnych (tryb wyjasnien) ---- */
+/* ---- registry of clickable regions, used by the explanation mode ---- */
 const EX={on:false};
 const HOT={rl:{p:[],l:[]}, nq:{p:[],l:[]}, bd:{p:[],l:[]}};
 const hotReset=k=>{HOT[k]={p:[],l:[]};};
@@ -1386,7 +1458,7 @@ function hotHit(k,x,y){
   }
   return best;
 }
-/* delikatna aureola pokazujaca, ze punkt jest klikalny */
+/* faint halo marking a point as clickable */
 function halo(ctx,x,y,rad){
   if(!EX.on) return;
   ctx.save(); ctx.globalAlpha=.4; ctx.setLineDash([1.5,2.5]);
@@ -1394,7 +1466,7 @@ function halo(ctx,x,y,rad){
   ctx.beginPath(); ctx.arc(x,y,rad||9,0,7); ctx.stroke(); ctx.restore();
 }
 
-/* --- linie pierwiastkowe --- */
+/* --- root locus --- */
 function drawRootLocus(A){
   const {ctx,w,h}=prep(rlCv);
   const ax=w<430?28:38, r={x:ax,y:12,w:w-ax-12,h:h-30};
@@ -1412,7 +1484,7 @@ function drawRootLocus(A){
   hotReset('rl');
   ctx.save(); clipR(ctx,r);
 
-  // pkt 2 karty wzorow: odcinki linii pierwiastkowych na osi liczb rzeczywistych
+  // formula sheet rule 2: root-locus segments on the real axis
   ctx.strokeStyle=col('--accent-soft'); ctx.globalAlpha=.55; ctx.lineWidth=5; ctx.lineCap='butt';
   for(const [a,b] of A.segs){
     const xa=X(Math.max(a,rng.xmin-1)), xb=X(Math.min(b,rng.xmax+1));
@@ -1421,7 +1493,7 @@ function drawRootLocus(A){
   }
   ctx.globalAlpha=1;
 
-  // pkt 3: asymptoty przecinajace os Re w punkcie delta
+  // rule 3: asymptotes meeting the real axis at delta
   if(A.delta!==null && A.alpha>0){
     const span=(rng.xmax-rng.xmin)*2;
     ctx.save(); ctx.setLineDash([6,4]); ctx.strokeStyle=col('--muted'); ctx.lineWidth=1; ctx.globalAlpha=.75;
@@ -1438,7 +1510,7 @@ function drawRootLocus(A){
     hotP('rl',X(A.delta),Y(0),'rl-delta',null,8); halo(ctx,X(A.delta),Y(0),8);
   }
 
-  // tor biegunow zamknietych przy przemiataniu k
+  // path traced by the closed-loop poles as k is swept
   const NK=260, kmax=4*K();
   const locusPts=[];
   for(let i=1;i<=NK;i++){
@@ -1451,7 +1523,7 @@ function drawRootLocus(A){
   ctx.globalAlpha=1;
   hotL('rl',locusPts,'rl-locus');
 
-  // pkt 4: punkty rozejscia / schodzenia sie linii
+  // rule 4: breakaway / break-in points
   for(const b of A.brk){
     const x=X(b.s), y=Y(0);
     ctx.fillStyle=col('--amber');
@@ -1510,7 +1582,7 @@ function drawNyquist(A){
   line(A.arc.map(q=>q.g), col('--amber'), [5,3], 'nq-arc');
   line(A.pos.map(q=>q.g), col('--accent'), null, 'nq-pos');
 
-  // groty na gałęzi ω>0
+  // arrowheads on the w>0 branch
   ctx.fillStyle=col('--accent');
   for(const f of [0.25,0.5,0.75]){
     const i=Math.floor(f*(A.pos.length-1)), a=A.pos[i].g, b=A.pos[i+3].g;
@@ -1520,12 +1592,12 @@ function drawNyquist(A){
     ctx.beginPath(); ctx.moveTo(6,0); ctx.lineTo(-4,3.5); ctx.lineTo(-4,-3.5); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
-  // punkt krytyczny
+  // critical point
   ctx.strokeStyle=col('--bad'); ctx.lineWidth=2; cross(ctx,X(-1),Y(0),6);
   ctx.fillStyle=col('--bad'); ctx.font='500 10px "IBM Plex Sans Condensed",sans-serif';
   ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('(−1, j0)',X(-1),Y(0)-9);
   hotP('nq',X(-1),Y(0),'nq-crit',null,11); halo(ctx,X(-1),Y(0),11);
-  // przecięcia
+  // crossings
   if(A.reCross!==null){
     ctx.fillStyle=col('--amber'); ctx.beginPath(); ctx.arc(X(A.reCross),Y(0),3.5,0,7); ctx.fill();
     hotP('nq',X(A.reCross),Y(0),'recross'); halo(ctx,X(A.reCross),Y(0));
@@ -1557,7 +1629,13 @@ function drawBode(A){
   const yr=(arr,pad,lo,hi)=>{let a=Math.max(Math.min(...arr),lo),b=Math.min(Math.max(...arr),hi);
     if(b-a<pad){const c=(a+b)/2;a=c-pad/2;b=c+pad/2;}
     const m=(b-a)*0.08; return {min:a-m,max:b+m};};
-  const my=yr(dB.filter(isFinite),40,-160,160), py=yr(phd,40,-630,190);
+  const parts = ($('bodeParts') && $('bodeParts').checked) ? bodeComponents(A) : [];
+  const spanDb=[...dB.filter(isFinite)], spanPh=[...phd];
+  for(const c of parts){
+    if(c.db_!==null) for(const v of c.db) if(isFinite(v)) spanDb.push(v);
+    for(const v of c.ph) if(isFinite(v)) spanPh.push(v);
+  }
+  const my=yr(spanDb,40,-160,160), py=yr(spanPh,40,-630,190);
 
   const panel=(r,ry,unit)=>{
     box(ctx,r);
@@ -1575,12 +1653,15 @@ function drawBode(A){
     ctx.globalAlpha=1;
     ctx.font='10px "IBM Plex Mono",monospace'; ctx.fillStyle=col('--muted');
     ctx.textAlign='right'; ctx.textBaseline='middle';
-    for(const t of ticks(ry.min,ry.max,5)){
+    const tk=ry.deg? ticksFrom(ry.min,ry.max,[15,45,90,180,360])
+                   : ticksFrom(ry.min,ry.max,[5,10,20,40,60,100]);
+    for(const t of tk){
       const y=Math.round(Y(t))+.5;
+      ctx.strokeStyle = Math.abs(t)<1e-9? col('--line') : col('--grid');
       ctx.beginPath(); ctx.moveTo(r.x,y); ctx.lineTo(r.x+r.w,y); ctx.stroke();
     }
     ctx.restore();
-    for(const t of ticks(ry.min,ry.max,5)) ctx.fillText(fmt(t,3),r.x-6,Y(t));
+    for(const t of tk) ctx.fillText(fmt(t,4)+(ry.deg?'°':''),r.x-6,Y(t));
     ctx.save(); ctx.translate(12,r.y+r.h/2); ctx.rotate(-Math.PI/2);
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif'; ctx.fillStyle=col('--muted');
@@ -1588,10 +1669,11 @@ function drawBode(A){
     return Y;
   };
 
-  const Ym=panel(rm,my,'L(ω)  [dB]');
-  const Yp=panel(rp,py,'φ(ω)  [°]');
+  my.deg=false; py.deg=true;
+  const Ym=panel(rm,my,'L(ω) = 20·log₁₀|G(jω)|   [dB]');
+  const Yp=panel(rp,py,'φ(ω) = arg G(jω)   [stopnie]');
 
-  // linie odniesienia
+  // reference lines
   const ref=(r,Y,v,id)=>{ const y=Y(v);
     if(y<r.y||y>r.y+r.h) return;
     ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle=col('--bad'); ctx.lineWidth=1.2; ctx.globalAlpha=.8;
@@ -1599,7 +1681,7 @@ function drawBode(A){
     hotL('bd',[[r.x,y],[r.x+r.w,y]],id); };
   ref(rm,Ym,0,'bd-0db'); ref(rp,Yp,-180,'bd-180');
 
-  // krzywe
+  // curves
   const curve=(r,Y,arr,color,id)=>{
     ctx.save(); clipR(ctx,r);
     ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
@@ -1613,10 +1695,49 @@ function drawBode(A){
     ctx.stroke(); ctx.restore();
     hotL('bd',scr,id);
   };
+  // individual factors: thin and dashed, so the total always reads as the
+  // dominant line. Identity is carried by the numbered badge at the right edge
+  // and by the matching badge in the equations below -- never by colour alone.
+  const partCurve=(r,Y,arr,color)=>{
+    ctx.save(); clipR(ctx,r);
+    ctx.strokeStyle=color; ctx.lineWidth=1.4; ctx.setLineDash([5,4]); ctx.globalAlpha=.9;
+    ctx.beginPath(); let up=false;
+    for(let i=0;i<A.w.length;i++){
+      if(!isFinite(arr[i])){up=false;continue;}
+      const x=X(A.w[i]), y=Y(arr[i]);
+      if(!up){ctx.moveTo(x,y);up=true;} else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.restore();
+  };
+  const badge=(r,Y,arr,color,txt,used)=>{
+    let y=Y(arr[arr.length-1]);
+    if(!isFinite(y)) return;
+    y=Math.max(r.y+9, Math.min(r.y+r.h-9, y));
+    while(used.some(v=>Math.abs(v-y)<15)) y+=15;
+    if(y>r.y+r.h-9) return;
+    used.push(y);
+    const x=r.x+r.w-11;
+    ctx.save();
+    ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,8,0,7); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font='600 10px "IBM Plex Sans Condensed",sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,x,y+.5);
+    ctx.restore();
+  };
+  const cssCol=c=>col(c.replace('var(','').replace(')',''));
+  for(const c of parts){
+    if(c.db_!==null) partCurve(rm,Ym,c.db,cssCol(c.color));
+    partCurve(rp,Yp,c.ph,cssCol(c.color));
+  }
   curve(rm,Ym,dB,col('--accent'),'bd-mag');
   curve(rp,Yp,phd,col('--amber'),'bd-pha');
+  const usedM=[], usedP=[];
+  for(const c of parts){
+    if(c.db_!==null) badge(rm,Ym,c.db,cssCol(c.color),String(c.i),usedM);
+    badge(rp,Yp,c.ph,cssCol(c.color),String(c.i),usedP);
+  }
+  renderBodeTerms(parts);
 
-  // pionowe znaczniki
+  // vertical markers
   const vline=(ww,label,color,id)=>{
     if(!ww||ww<A.lo||ww>A.hi) return;
     const x=Math.round(X(ww))+.5;
@@ -1630,7 +1751,7 @@ function drawBode(A){
   vline(A.wc,'ω_c '+fmt(A.wc),col('--accent'),'wc');
   vline(A.w180,'ω_180 '+fmt(A.w180),col('--bad'),'w180');
 
-  // pulsacje łamania — odwrotności stałych czasowych
+  // corner frequencies, i.e. reciprocals of the time constants
   ctx.save(); clipR(ctx,rm);
   for(const c of A.corners){
     if(c.w<A.lo||c.w>A.hi) continue;
@@ -1641,7 +1762,7 @@ function drawBode(A){
   }
   ctx.restore();
 
-  // zapas fazy jako pionowy odcinek w ω_c
+  // phase margin as a vertical segment at w_c
   if(A.wc && A.pm!==null){
     const x=X(A.wc), y1=Yp(-180), y2=Yp(-180+A.pm);
     ctx.save(); clipR(ctx,rp); ctx.strokeStyle=col('--good'); ctx.lineWidth=3;
@@ -1651,7 +1772,7 @@ function drawBode(A){
     ctx.restore();
     hotL('bd',[[x,y1],[x,y2]],'pm');
   }
-  // zapas wzmocnienia jako odcinek w ω_180
+  // gain margin as a vertical segment at w_180
   if(A.w180 && isFinite(A.gm)){
     const x=X(A.w180), y1=Ym(0), y2=Ym(-20*Math.log10(A.gm));
     ctx.save(); clipR(ctx,rm); ctx.strokeStyle=col('--good'); ctx.lineWidth=3;
@@ -1662,7 +1783,7 @@ function drawBode(A){
     hotL('bd',[[x,y1],[x,y2]],'gm');
   }
 
-  // oś ω
+  // frequency axis
   ctx.fillStyle=col('--muted'); ctx.font='10px "IBM Plex Mono",monospace';
   ctx.textAlign='center'; ctx.textBaseline='top';
   for(let d=Math.ceil(lgx); d<=Math.floor(lgh); d++){
@@ -1680,10 +1801,30 @@ function drawBode(A){
            : `PM = ${fmt(A.pm)}° ${A.pm>0?'> 0 ⇒ układ zamknięty stabilny.':'≤ 0 ⇒ układ zamknięty niestabilny.'}`)
       : `<b>Uwaga:</b> P = ${A.P}${minPhase?'':' i układ nie jest minimalnofazowy (zero w prawej półpłaszczyźnie lub opóźnienie)'} — uproszczone kryterium Bodego <b>nie obowiązuje</b>. Wiążąca jest liczba okrążeń z hodografu: Z = ${A.Z}.`);
 }
+/* Both sums written out, each term tagged with the same numbered badge and
+   colour as its curve, so a line on the plot maps to a term in the equation. */
+function renderBodeTerms(parts){
+  const box=$('bodeTerms'); if(!box) return;
+  if(!parts.length){ box.innerHTML=''; return; }
+  const chip=(c,txt)=>`<span class="bterm" style="--bc:${c.color}">`
+    + (c.op? `<span class="op">${c.op}</span>`:'')
+    + `<span class="idx">${c.i}</span>${esc(txt)}</span>`;
+  const dbTerms=parts.filter(c=>c.db_!==null).map(c=>chip(c,c.db_)).join('');
+  const argTerms=parts.map(c=>chip(c,c.arg_)).join('');
+  box.innerHTML =
+      `<div class="bterm-row"><span class="lhs">20·log₁₀|G(jω)| [dB] =</span>${dbTerms}</div>`
+    + `<div class="bterm-row"><span class="lhs">arg G(jω) [stopnie] =</span>${argTerms}</div>`
+    + `<p class="bterm-legend">Każdy składnik jest narysowany osobno linią przerywaną w swoim kolorze — tak, `
+    + `jakby występował sam. Numer w kółku przy prawej krawędzi wykresu wskazuje, która krzywa `
+    + `odpowiada któremu wyrażeniu. Linia ciągła to suma wszystkich składników, czyli właściwa `
+    + `charakterystyka. Czynniki są sprowadzone do postaci (1 + τjω), a stałe wyciągnięte przed `
+    + `nawias zebrane są w składniku k.</p>`;
+}
+
 const sup=d=>String(d).replace('-','⁻').replace(/[0-9]/g,c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]);
 const sub=d=>String(d).replace('-','₋').replace(/[0-9]/g,c=>'₀₁₂₃₄₅₆₇₈₉'[+c]);
 
-/* ===================== panel transmitancji ===================== */
+/* ===================== transfer-function panel ===================== */
 function factorText(list){
   const out=[];
   list.forEach((it,i)=>{
@@ -1739,15 +1880,16 @@ function renderTF(A){
 
 
 /* =====================================================================
-   TRYB WYJASNIEN — co znaczy liczba, z jakiego wzoru i jak policzona.
-   Notacja za karta wzorow ISD oraz notatkami (omega_gc / omega_pc / M_g).
+   EXPLANATION MODE: what a number means, which formula it comes from and how
+   it was computed. Notation follows the course formula sheet and the lecture
+   notes (omega_gc / omega_pc / M_g).
    ===================================================================== */
 
 const D2 = 180/Math.PI;
 const sgn = v => v<0 ? '\u2212' : '+';
 const fx = (v,d) => fmt(v,d||4);
 
-/* etykieta czynnika (j\u03c9 \u2212 r) w formie uzywanej na cwiczeniach */
+/* label for a factor (jw - r), written the way it is on the exercise sheets */
 function facLab(r){
   if(Math.abs(r.im)<1e-12){
     const a=-r.re;
@@ -1765,7 +1907,7 @@ function polLab(r){
   return '(s\u00b2 ' + sgn(-2*r.re) + ' ' + fx(Math.abs(2*r.re)) + 's ' + sgn(r.re*r.re+r.im*r.im) + ' ' + fx(r.re*r.re+r.im*r.im) + ')';
 }
 
-/* rozklad modulu na czynniki: |G| = |K|\u00b7\u03a0|j\u03c9\u2212z| / (\u03c9^\u03bd \u00b7 \u03a0|j\u03c9\u2212p|) */
+/* magnitude split into factors: |G| = |K| * PROD|jw-z| / (w^nu * PROD|jw-p|) */
 function magTerms(w){
   const rows=[], s=C(0,w);
   let v=Math.abs(K()); rows.push(['|K|', fx(v)]);
@@ -1774,7 +1916,7 @@ function magTerms(w){
   for(const q of expand('p')){ const m=cabs(csub(s,q)); v/=m; rows.push(['1 / |'+facLab(q)+'|', fx(1/m)]); }
   return {rows, val:v};
 }
-/* rozklad fazy: arg G = arg K \u2212 90\u00b0\u03bd \u2212 57,3\u00b7\u03c9T_d + \u03a3arg(j\u03c9\u2212z) \u2212 \u03a3arg(j\u03c9\u2212p) */
+/* phase split into factors: arg G = arg K - 90*nu - 57.3*w*Td + SUM arg(jw-z) - SUM arg(jw-p) */
 function phTerms(w){
   const rows=[], s=C(0,w);
   let v=0;
@@ -1789,7 +1931,7 @@ const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 const rowsHtml = rows => rows.map(r=>'<span>'+esc(pad(r[0],34))+' = '+esc(r[1])+'</span>').join('');
 function pad(t,n){ return t.length>=n? t : t+' '.repeat(n-t.length); }
 
-/* metryki pary biegunow zamknietych wg karty wzorow (uklad II rzedu) */
+/* second-order metrics for a closed-loop pole pair, per the formula sheet */
 function poleMetrics(q){
   const wn=cabs(q), zeta = wn>0 ? -q.re/wn : 0;
   const o={wn,zeta};
@@ -1809,7 +1951,7 @@ function EXPLAIN(id, A, d){
 
   switch(id){
 
-  /* ---------------- parametry transmitancji ---------------- */
+  /* ---------------- transfer-function parameters ---------------- */
   case 'K': return {kind:'Parametr transmitancji', title:'K \u2014 wzmocnienie uk\u0142adu otwartego',
     what:'Sta\u0142y mno\u017cnik transmitancji po sprowadzeniu wszystkich czynnik\u00f3w do postaci (s + a). Skaluje modu\u0142 jednakowo na ka\u017cdej pulsacji, czyli przesuwa ca\u0142\u0105 charakterystyk\u0119 amplitudow\u0105 Bodego w pionie. Fazy nie zmienia \u2014 chyba \u017ce jest ujemne, wtedy dok\u0142ada sta\u0142e \u2212180\u00b0.',
     formula:[Go],
@@ -1868,7 +2010,7 @@ function EXPLAIN(id, A, d){
     result: A.Z===0 ? 'Z = 0 \u2192 uk\u0142ad zamkni\u0119ty STABILNY' : 'Z = '+A.Z+' \u2192 uk\u0142ad zamkni\u0119ty NIESTABILNY',
     note:'Okr\u0105\u017cenia liczymy wok\u00f3\u0142 punktu (\u22121, j0), a nie wok\u00f3\u0142 zera, bo kre\u015blenie 1 + G\u2092 oznacza\u0142oby przesuni\u0119cie ca\u0142ego hodografu o +1. Zamiast przesuwa\u0107 krzyw\u0105, przesuwamy punkt odniesienia. Kontrol\u0105 niezale\u017cn\u0105 od rysunku jest kryterium Routha\u2013Hurwitza zastosowane do wielomianu D(s) + K\u00b7N(s).'};
 
-  /* ---------------- zapasy i przeciecia ---------------- */
+  /* ---------------- stability margins and crossings ---------------- */
   case 'wc': {
     if(!A.wc) return {kind:'Zapas stabilno\u015bci', title:'\u03c9_c \u2014 pulsacja odci\u0119cia amplitudowego',
       what:'Pulsacja, przy kt\u00f3rej modu\u0142 transmitancji otwartej spada dok\u0142adnie do 1, czyli L(\u03c9) przecina lini\u0119 0 dB. W notatkach z wyk\u0142adu oznaczana \u03c9_gc (gain crossover).',
@@ -1989,7 +2131,7 @@ function EXPLAIN(id, A, d){
       note:'Wi\u0119ksze k_p to mniejszy uchyb, ale te\u017c wy\u017cej po\u0142o\u017cona charakterystyka amplitudowa, wi\u0119ksze \u03c9_c i mniejszy zapas fazy. To jest klasyczny kompromis dok\u0142adno\u015b\u0107 \u2013 stabilno\u015b\u0107.'};
   }
 
-  /* ---------------- linie pierwiastkowe ---------------- */
+  /* ---------------- root locus ---------------- */
   case 'rl-pole': return {kind:'Linie pierwiastkowe', title:'Biegun uk\u0142adu otwartego',
     what:'Pierwiastek mianownika G\u2092(s). Linie pierwiastkowe startuj\u0105 w biegunach otwartych przy k = 0 \u2014 dla zerowego wzmocnienia bieguny uk\u0142adu zamkni\u0119tego pokrywaj\u0105 si\u0119 z otwartymi.',
     formula:['k = 0  \u21d2  D(s) = 0  \u21d2  s = p\u1d62'],
@@ -2229,7 +2371,7 @@ const EXP_LABEL={
   'recross':'Przecięcie z osią Re'
 };
 
-/* ---------- render okna wyjasnienia ---------- */
+/* ---------- explanation dialog rendering ---------- */
 function showExp(id, A, d){
   const e = EXPLAIN(id, A, d);
   if(!e) return;
@@ -2247,7 +2389,7 @@ function showExp(id, A, d){
   $('expDlg').showModal();
 }
 
-/* ===================== UI ===================== */
+/* ===================== UI wiring ===================== */
 const $=id=>document.getElementById(id);
 const rlCv=$('rlCv'), nqCv=$('nqCv'), bdCv=$('bdCv');
 const rlNote=$('rlNote'), nqNote=$('nqNote'), bdNote=$('bdNote');
@@ -2344,7 +2486,8 @@ new MutationObserver(refresh).observe(document.documentElement,{attributes:true,
 
 document.documentElement.lang='pl';
 
-/* ---------- tryb wyjaśnień: przełącznik, kliknięcia, okno ---------- */
+/* ---------- explanation mode: toggle, click handling, dialog ---------- */
+$('bodeParts').onchange=()=>refresh();
 $('explainBtn').onclick=()=>{
   EX.on=!EX.on;
   document.body.classList.toggle('explain',EX.on);
@@ -2390,7 +2533,7 @@ tgl.onclick=()=>{
   $('ctlLabel').textContent=open?'Zamknij panel':'Sterowanie';
 };
 
-/* ---------- karty (widoki) ---------- */
+/* ---------- tabs (views) ---------- */
 const TABS=['analiza','routh','block','ss'];
 let CUR_TAB='analiza';
 function setTab(name){
@@ -2404,8 +2547,9 @@ function setTab(name){
   $('shellAnalysis').style.display = showRail? '' : 'none';
   document.body.classList.toggle('ctl-open', false);
   $('ctlToggle').style.display = showRail? '' : 'none';
-  // tryb wyjaśnień działa wyłącznie na karcie Analiza (tam są klikalne wielkości
-  // i punkty na wykresach) -- na pozostałych przycisk znika, a tryb sam się wyłącza
+  // The explanation mode only does anything on the Analysis tab, which is where
+  // the clickable values and plot hotspots live. Elsewhere the button is hidden
+  // and the mode switches itself off.
   const canExplain = (name==='analiza');
   $('explainBtn').style.display = canExplain? '' : 'none';
   if(EX.on){
@@ -2472,26 +2616,26 @@ refreshBlock();
 renderPZ(); syncControls(); refresh();
 setTab('analiza');
 
-/* ===================== kontrola na przykładach z instrukcji ===================== */
+/* ============ self-test against the worked examples in the course notes ============ */
 (function selftest(){
   const snap=JSON.stringify(S);
   const near=(a,b,t,n)=>{const ok=Math.abs(a-b)<t; console.assert(ok,`selftest ${n}: ${a} ≠ ${b}`); return ok;};
   let ok=true;
-  // 10/[(s+1)(s+2)] : ω_c = 2,759 ; PM = 55,9° ; GM = ∞ ; Z = 0
+  // 10/[(s+1)(s+2)] : w_c = 2.759 ; PM = 55.9 deg ; GM = inf ; Z = 0
   Object.assign(S,{Kmag:10,Kneg:false,nu:0,Td:0,items:[{kind:'p',re:-1,im:0,on:true},{kind:'p',re:-2,im:0,on:true}]});
   let A=analyse();
   ok&=near(A.wc,2.759,0.01,'wc');
   ok&=near(A.pm,55.9,0.2,'PM');
   ok&=near(A.Z,0,0.1,'Z');
   ok&=near(A.kp,5,0.01,'kp');
-  // 10/[s(s+1)(s+2)] : ω_180 = √2 ; Re = −1,67 ; ω_c = 1,80 ; PM = −13° ; Z = 2
+  // 10/[s(s+1)(s+2)] : w_180 = sqrt(2) ; Re = -1.67 ; w_c = 1.80 ; PM = -13 deg ; Z = 2
   S.nu=1; A=analyse();
   ok&=near(A.w180,Math.SQRT2,0.005,'w180');
   ok&=near(A.reCross,-1.667,0.01,'Re(w180)');
   ok&=near(A.wc,1.80,0.02,'wc astat');
   ok&=near(A.pm,-13,0.5,'PM astat');
   ok&=near(A.Z,2,0.1,'Z astat');
-  // 1/[s(1−s)] = −1/[s(s−1)] : P = 1, Z = 1
+  // 1/[s(1-s)] = -1/[s(s-1)] : P = 1, Z = 1
   Object.assign(S,{Kmag:1,Kneg:true,nu:1,Td:0,items:[{kind:'p',re:1,im:0,on:true}]});
   A=analyse();
   ok&=near(A.P,1,0.1,'P nieminimalnofazowy');
