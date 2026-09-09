@@ -13,7 +13,8 @@ karty w stylu kart przeglądarki:
   Kryterium Nyquista `Z = N + P` liczone jest numerycznie z przyrostu argumentu
   `1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
   z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym. Hodograf jest
-  rozpisany na **etapy rysowania ręcznego** — patrz niżej.
+  rozpisany tak, jak wyprowadza się go na kartce: rozkład `G_o(jω)` na `P(ω)` i `Q(ω)`,
+  podział konturu na etapy i bilans okrążeń punktu `(−1, j0)`.
 - **Routh–Hurwitz** — warunek konieczny (znaki współczynników) i pełna tablica Routha
   dla bieżącego `K`, z krzyżową kontrolą względem `Z` z konturu Nyquista; oraz
   przedziały `K`, dla których układ zamknięty jest stabilny, wyznaczone symbolicznie
@@ -29,129 +30,9 @@ karty w stylu kart przeglądarki:
   do 4, rysowana dodatkowo jako **schemat symulacyjny**: łańcuch integratorów ze
   współczynnikami `aᵢ` w sprzężeniach i `bᵢ` w torach w przód. Do tego siedem obwodów
   RLC/RC/RL rysowanych prawdziwymi symbolami elektrycznymi (rezystor, cewka,
-  kondensator, węzły, zaciski `u₁`/`u₂`), z transmitancją i modelem stanowym
-  wyprowadzonymi z równań obwodu. Obok nich pięć **układów mechanicznych**
-  masa–sprężyna–tłumik, rysowanych symbolami mechanicznymi (utwierdzenie z
-  kreskowaniem, zygzak sprężyny, cylinder tłumika, blok masy, strzałka siły i
-  współrzędna `x`) i opisanych tymi samymi równaniami — analogia siła–napięcie
-  `m ↔ L`, `b ↔ R`, `1/k ↔ C` daje identyczne transmitancje, łącznie z układem
-  bez sprężyny, który jest astatyzmem rzędu 1, i zawieszeniem z wymuszeniem
-  kinematycznym podstawy, które wnosi zero.
-
-## Hodograf krok po kroku: P(ω), Q(ω) i etapy konturu
-
-Karta Analiza pokazuje hodograf tak, jak wyprowadza się go na kartce.
-
-**Krok 1 — rozdzielenie na P i Q.** Po podstawieniu `s = jω` mianownik jest
-zespolony, więc mnożymy licznik i mianownik przez sprzężenie mianownika:
-
-```
-G_o(jω) = (A + jB)/(C + jD) = (A + jB)(C − jD)/(C² + D²)
-P(ω) = (A·C + B·D)/(C² + D²)      Q(ω) = (B·C − A·D)/(C² + D²)
-```
-
-`A`, `B`, `C`, `D` to wielomiany rzeczywiste w `ω`, powstałe z podstawienia
-`s = jω` (`j^k` cykluje `1, j, −1, −j`, więc potęgi parzyste dają część
-rzeczywistą, nieparzyste — urojoną). Wszystkie cztery, a także liczniki `P` i `Q`
-oraz wspólny mianownik `C² + D²`, są wypisane w karcie w postaci jawnej.
-
-Ponieważ to zwykła arytmetyka wielomianów, kilka wielkości wychodzi **dokładnie**,
-a nie z przeszukiwania siatki częstotliwości:
-
-| wielkość | równanie |
-|---|---|
-| `ω_180` i `Re G` w tym punkcie | dodatnie pierwiastki licznika `Q(ω) = 0` |
-| `ω_c` i `PM` | dodatnie pierwiastki `A² + B² − C² − D² = 0` (czyli `\|G\| = 1`) |
-| asymptota pionowa `Re = lim_{ω→0} P(ω)` | iloraz najniższych potęg `ω` licznika i mianownika |
-| kąt dojścia do zera | `−90°·(n − m)` |
-| kąt położenia startu `φ₀` | `arg c − d·90°` — ta sama liczba, od której startuje faza na Bodem |
-| kąt wyjścia przy `ω → 0⁺` | `φ₀ + 180°` dla `d > 0`, `φ₀` dla `d < 0`, `±90°` (znak `Q′(0)`) dla `d = 0` |
-
-Dla `10/[s(s+1)(s+2)]` daje to `P = −30ω²/(ω⁶ + 5ω⁴ + 4ω²)`,
-`Q = (10ω³ − 20ω)/(ω⁶ + 5ω⁴ + 4ω²)`, stąd `ω_180 = √2`, `P(ω_180) = −5/3`
-i asymptota `Re = −7,5` — dokładnie wyniki z instrukcji.
-Moduł nie zależy od opóźnienia (`|e^{-jωT_d}| = 1`), więc pierwiastki dla `ω_c`
-pozostają dokładne również przy `T_d > 0`; `ω_180` — nie, bo faza się przesuwa.
-
-Warto rozróżnić dwa kąty, bo mylenie ich jest źródłem pozornego przesunięcia
-o 180°. `φ₀` mówi, **gdzie** leży początek hodografu (to jest wartość, od której
-startuje charakterystyka fazowa Bodego), a kąt wyjścia — **dokąd** krzywa z tego
-punktu jedzie. Przy `ω → 0` zachodzi `G_o(jω) ≈ c·(jω)^(−d)`, więc argument jest
-stały (cały niskoczęstotliwościowy fragment leży na jednej półprostej), a zmienia
-się sam moduł `|c|·ω^(−d)`. Różniczkowanie po `ω` mnoży `e^{jφ₀}` przez liczbę
-rzeczywistą `−d·|c|·ω^(−d−1)`: dla `d > 0` ujemną, czyli obrót o 180° — punkt
-sunie po półprostej **do środka**, więc wektor prędkości jest antyrównoległy do
-wektora położenia. Dla `d = 0` moduł jest skończony i decyduje parzystość:
-`P` parzysta (`P′(0) = 0`), `Q` nieparzysta, więc krzywa opuszcza punkt startowy
-prostopadle, a `Q′(0) = k_p·(Στ_z − Στ_p)`. Ta sama suma stałych czasowych przy
-`ν = 1` wyznacza położenie asymptoty pionowej, `Re = K_v·(Στ_z − Στ_p)`.
-
-Znak `c` zbiera wszystkie źródła przesunięcia `φ₀` o 180°: ujemne `K` oraz każdy
-**rzeczywisty** biegun lub zero w prawej półpłaszczyźnie, bo `(jω − p)` w `ω = 0`
-równa się `−p`. Para zespolona sprzężona daje `|z|² > 0` i nie wnosi nic. To jest
-dokładnie „minus wyciągnięty z czynników” z rozkładu Bodego: `(s − 3) = −3(1 − s/3)`.
-
-**Krok 2 — etapy konturu.** Liczba etapów zależy wyłącznie od tego, czy `G_o(s)`
-ma miejsce zerowe w `s = 0`: biegun w mianowniku (`ν`) albo zero w liczniku (`μ`).
-Kontur Cauchy'ego nie może przez taki punkt przejść, więc omija go wcięciem
-`s = ε·e^{jθ}`, `ε → 0` — przechodzi nieskończenie blisko `(0, j0)`, ale po stronie
-prawej półpłaszczyzny, przez co biegun w zerze zostaje **na zewnątrz** konturu i nie
-wlicza się do `P`. Wcięcie dokłada dwa etapy:
-
-| | ν = μ = 0 — trzy etapy | ν > 0 lub μ > 0 — pięć etapów |
-|---|---|---|
-| 1 | `s = jω`, `ω: 0 → +∞` | górny łuk wcięcia, `θ: 0° → +90°` |
-| 2 | `s = R·e^{jθ}`, `R → ∞`, `θ: +90° → −90°` | `s = jω`, `ω: 0⁺ → +∞` |
-| 3 | `s = jω`, `ω: −∞ → 0` | `s = R·e^{jθ}`, `R → ∞`, `θ: +90° → −90°` |
-| 4 | | `s = jω`, `ω: −∞ → 0⁻` |
-| 5 | | dolny łuk wcięcia, `θ: −90° → 0°` |
-
-Kolejność jest kolejnością obchodzenia konturu, startując od `s = +ε` na osi
-rzeczywistej. Obrazem wcięcia jest łuk o promieniu `|c|·ε^{−d}`, gdzie
-`d = ν − μ`, a `c = lim_{s→0} s^d·G_o(s)`; argument zmienia się o `−d·180°` na
-całym wcięciu, po `−d·90°` na każdą połówkę. Dla `d > 0` promień dąży do
-nieskończoności — i to właśnie ten łuk wnosi okrążenia punktu `(−1, j0)`
-(klasyczne `N = 2` dla `10/[s(s+1)(s+2)]` bierze się w całości z niego).
-
-**Rysunek.** Żeby hodograf domykał się na ekranie, wszystko poza okręgiem
-`0,9·R_widoku` jest rzutowane promieniście na ten okrąg: cała nieskończoność
-płaszczyzny `G` zwija się w jeden „horyzont”. Wewnątrz horyzontu krzywa jest
-narysowana bez żadnych zniekształceń; fragmenty zwinięte rysowane są cienką,
-bladą kreską, a łuki wcięcia — przerywaną linią bursztynową, z zachowanym
-dokładnym kątem i zwrotem. Etapy są ponumerowane na wykresie tymi samymi
-numerami co w tabeli. Bez tego domknięcia krzywa jest otwarta i okrążeń punktu
-krytycznego po prostu nie da się policzyć — a to najczęstszy błąd przy
-rysowaniu ręcznym.
-
-## Kryterium Nyquista krok po kroku
-
-Osobna karta rozpisuje `Z = N + P` na trzy kroki i pokazuje, skąd ten wzór się bierze.
-Podstawą jest **zasada argumentu Cauchy'ego**: jeżeli `F(s)` jest analityczna na zamkniętym
-konturze i ma wewnątrz niego `Z_F` zer oraz `P_F` biegunów, to obraz konturu okrąża punkt
-`0` dokładnie `Z_F − P_F` razy, w tę samą stronę, w którą obiegany jest kontur. Dla
-`F(s) = 1 + G_o(s) = [M(s) + L(s)]/M(s)`:
-
-- zera `F` to pierwiastki `M + L`, czyli bieguny układu **zamkniętego** ⇒ `Z_F = Z`,
-- bieguny `F` to pierwiastki `M`, czyli bieguny układu **otwartego** ⇒ `P_F = P`,
-- `F` okrąża `0` dokładnie wtedy, gdy `G_o = F − 1` okrąża `(−1, j0)`,
-
-stąd `N = Z − P`, czyli `Z = N + P`, a stabilność ⇔ `Z = 0`.
-
-`N` liczone jest dwiema niezależnymi metodami, które muszą dać ten sam wynik:
-przez **przyrost argumentu** `1 + G_o(s)` wzdłuż całego konturu oraz **z przecięć
-półprostej** wychodzącej z `(−1, j0)` w lewo — tak, jak liczy się to ręcznie: przecięcie
-w górę to `+1` (zgodnie ze wskazówkami), w dół `−1`. Karta wypisuje każde przecięcie
-z jego wartością, kierunkiem, numerem etapu konturu i pulsacją. Trzecią, całkowicie
-niezależną kontrolą jest liczba pierwiastków `D(s) + K·N(s)` o `Re > 0`.
-
-Zapasy podawane są zawsze w obu postaciach: `GM` jako krotność i jako `M_g` w decybelach.
-
-**Przecięcie fazowe w `ω = 0`.** Układy nieminimalnofazowe potrafią startować wprost na
-ujemnej półosi rzeczywistej — faza wynosi wtedy `180°` już przy `ω = 0`, więc pulsacja
-odcięcia fazowego leży na samym krańcu pasma i zwykłe szukanie zmiany znaku `Im G_o`
-niczego nie znajduje. Dla `G_o = (s − 1)/[(s+1)(s+2)]` daje to `GM = 1/|k_p| = 2`
-(`6,02 dB`) przy `ω_180 = 0`, co zgadza się z równaniem charakterystycznym
-`s² + (3+K)s + (2−K)`: granica stabilności leży dokładnie przy `K = 2`.
+  kondensator, węzły, zaciski `u₁`/`u₂`), a obok nich pięć układów mechanicznych
+  masa–sprężyna–tłumik — jedne i drugie z transmitancją oraz modelem stanowym
+  wyprowadzonymi z równań obiektu.
 
 ## Rozkład Bodego na składniki
 
@@ -169,15 +50,6 @@ Poprawność rozkładu jest sprawdzana numerycznie: suma składników musi odtwo
 krzywą wypadkową co do bitu, również dla par zespolonych, biegunów w prawej
 półpłaszczyźnie, ujemnego `K` i opóźnienia transportowego.
 
-W trybie wyjaśnień każdy składnik jest klikalny i opisuje sam siebie: którym elementem
-ułamka transmitancji jest (licznik czy mianownik, zero czy biegun, w którym punkcie
-płaszczyzny `s`), jakie ma nachylenie modułu i **od której pulsacji** ono obowiązuje,
-o ile stopni i **w którym miejscu osi** przestawia fazę (`±45°` dokładnie w pulsacji
-łamania, `±5,7°` dekadę przed, `±84,3°` dekadę za), ile wynosi błąd asymptot w samym
-załamaniu (`±3 dB`) oraz jaki wkład wnosi w `ω_c`. Człon oscylacyjny dokłada do tego
-`ω_r` i `M_r`, integratory — nachylenie od `ω → 0` i stałe `−90°·ν`, a opóźnienie
-transportowe zaznacza, że modułu nie zmienia wcale, a fazę odbiera bez ograniczenia.
-
 ## Tryb wyjaśnień
 
 Przełącznik **Tryb wyjaśnień** w nagłówku uaktywnia warstwę dydaktyczną. Każda wyliczona
@@ -193,11 +65,8 @@ zapas fazy, zapas wzmocnienia `M_g`, przecięcie z osią Re, `k_p`, bieguny i ze
 otwartego, bieguny układu zamkniętego (z `ζ`, `ω_n`, `M_p` i czasami ustalania), asymptoty
 i punkt `δ`, punkty rozejścia się linii, odcinki na osi rzeczywistej, obie krzywe Bodego,
 linie odniesienia 0 dB i −180°, pulsacje łamania, punkt krytyczny `(−1, j0)`, obie gałęzie
-hodografu, oba łuki wcięcia i okrąg jednostkowy, a także rozkład na `P(ω)` i `Q(ω)`,
-rzędy `ν`, `μ`, `d`, współczynnik `c` i kąt łuku wcięcia, asymptota pionowa, punkt
-startowy `A = G_o(0)`, kąt położenia `φ₀` i kąt wyjścia przy `ω → 0⁺`, obraz dużego
-łuku domykającego, kąt dojścia do zera oraz oba dokładne równania pierwiastkowe
-(`Q(ω) = 0` i `|G_o| = 1`).
+hodografu, łuki wcięcia i okrąg jednostkowy, etapy konturu, oraz każdy składnik
+rozkładu Bodego z osobna.
 
 W tym trybie wykres linii pierwiastkowych dorysowuje też asymptoty, punkt `δ`, punkty
 rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji łamania.
