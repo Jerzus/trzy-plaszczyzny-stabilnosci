@@ -253,7 +253,7 @@ function renderBodeTerms(parts) {
   const host = $('bodeTerms');
   if (!host) return;
   if (!parts.length) { host.innerHTML = ''; return; }
-  const chip = (c, txt) => `<span class="bterm" style="--bc:${c.color}">`
+  const chip = (c, txt) => `<span class="bterm" style="--bc:${c.color}" data-ex="bterm" data-bi="${c.i}" tabindex="0" role="button">`
     + (c.op ? `<span class="op">${c.op}</span>` : '')
     + `<span class="idx">${c.i}</span>${esc(txt)}</span>`;
   const dbTerms = parts.filter(c => c.db_ !== null).map(c => chip(c, c.db_)).join('');
@@ -263,7 +263,7 @@ function renderBodeTerms(parts) {
     + `<div class="bterm-row"><span class="lhs">arg G(jω) [stopnie] =</span>${argTerms}</div>`
     + `<p class="bterm-legend">Każdy składnik jest narysowany osobno linią przerywaną w swoim kolorze — tak, `
     + `jakby występował sam. Numer w kółku przy prawej krawędzi wykresu wskazuje, która krzywa `
-    + `odpowiada któremu wyrażeniu. Linia ciągła to suma wszystkich składników, czyli właściwa `
+    + `odpowiada któremu wyrażeniu. W trybie wyjaśnień każdy składnik jest klikalny. Linia ciągła to suma wszystkich składników, czyli właściwa `
     + `charakterystyka. Czynniki są sprowadzone do postaci (1 + τjω), a stałe wyciągnięte przed `
     + `nawias zebrane są w składniku k.</p>`;
 }

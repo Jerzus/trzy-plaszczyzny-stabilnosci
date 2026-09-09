@@ -27,29 +27,32 @@ export function bodeComponents(A){
     }
   }
   // 1) constant gain
-  mk({db_:'20log|k|', arg_:'arg k', val:'k = '+fx(kb,4), op:''},
+  mk({db_:'20log|k|', arg_:'arg k', val:'k = '+fx(kb,4), op:'', meta:{kind:'k', k:kb}},
      ()=>20*Math.log10(Math.abs(kb)||1e-300), ()=> kb<0? -180:0);
   // 2) integrators
   if(S.nu) mk({db_:'\u221220\u00b7'+S.nu+'\u00b7log \u03c9', arg_:fmt(-90*S.nu,4)+'\u00b0',
-               val:'1/s'+(S.nu>1?sup(S.nu):''), op:'+'},
+               val:'1/s'+(S.nu>1?sup(S.nu):''), op:'+', meta:{kind:'nu', nu:S.nu}},
               ww=>-20*S.nu*Math.log10(ww), ()=>-90*S.nu);
   // 3) first- and second-order factors
   for(const f of fac){
     const op = f.sgn>0? '+' : '\u2212';
     if(f.order===1){
       const t=f.tau, body='1 '+(t<0?'\u2212':'+')+' '+fx(Math.abs(t),3)+'j\u03c9';
-      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op},
+      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op,
+          meta:{kind:'ord1', sgn:f.sgn, tau:t, wb:1/Math.abs(t), root:-1/t}},
          ww=>f.sgn*20*Math.log10(Math.hypot(1, ww*t)),
          ww=>f.sgn*Math.atan(ww*t)*DEG);
     } else {
       const body='1 + 2\u00b7'+fx(f.z,3)+'\u00b7(j\u03c9/'+fx(f.wn,3)+') + (j\u03c9/'+fx(f.wn,3)+')\u00b2';
-      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op},
+      mk({db_:'20log|'+body+'|', arg_:'arg('+body+')', val:body, op,
+          meta:{kind:'ord2', sgn:f.sgn, wn:f.wn, z:f.z}},
          ww=>{const u=ww/f.wn; return f.sgn*20*Math.log10(Math.hypot(1-u*u, 2*f.z*u));},
          ww=>{const u=ww/f.wn; return f.sgn*Math.atan2(2*f.z*u, 1-u*u)*DEG;});
     }
   }
   // 4) transport delay -- contributes nothing to the magnitude
-  if(S.Td>0) mk({db_:null, arg_:'\u221257,3\u00b7\u03c9\u00b7'+fx(S.Td,3), val:'e^(\u2212j\u03c9T_d)', op:'+'},
+  if(S.Td>0) mk({db_:null, arg_:'\u221257,3\u00b7\u03c9\u00b7'+fx(S.Td,3), val:'e^(\u2212j\u03c9T_d)', op:'+',
+                 meta:{kind:'delay', Td:S.Td}},
                 ()=>0, ww=>-ww*S.Td*DEG);
   comps.forEach((c,i)=>{ c.i=i+1; c.color = i<SLOTS? 'var(--sc'+(i+1)+')' : 'var(--muted)'; });
   return comps;

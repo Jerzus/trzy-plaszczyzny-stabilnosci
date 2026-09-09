@@ -128,14 +128,14 @@ $('expDlg').addEventListener('click',e=>{ if(e.target===$('expDlg')) $('expDlg')
 document.addEventListener('click',e=>{
   if(!EX.on||!LAST) return;
   const t=e.target.closest('[data-ex]');
-  if(t) showExp(t.dataset.ex, LAST);
+  if(t) showExp(t.dataset.ex, LAST, t.dataset);
 });
 document.addEventListener('keydown',e=>{
   if(!EX.on||!LAST) return;
   if(e.key!=='Enter'&&e.key!==' ') return;
   const t=e.target.closest&&e.target.closest('[data-ex]');
   if(!t) return;
-  e.preventDefault(); showExp(t.dataset.ex, LAST);
+  e.preventDefault(); showExp(t.dataset.ex, LAST, t.dataset);
 });
 
 const wireCanvas=(cv,key)=>{
@@ -202,7 +202,11 @@ document.querySelectorAll('.tabbar button[data-tab]').forEach(b=>{
   b.addEventListener('click',()=>setTab(b.dataset.tab));
 });
 
-$('rlcTopo').innerHTML = Object.entries(RLC_TOPOS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+{ const groups={};
+  for(const [k,v] of Object.entries(RLC_TOPOS)) (groups[v.group||'']??=[]).push([k,v]);
+  $('rlcTopo').innerHTML = Object.entries(groups).map(([g,list])=>
+    `<optgroup label="${g}">`+list.map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')+'</optgroup>').join('');
+}
 $('rlcTopo').value=RLC_SEL.key;
 $('rlcTopo').onchange=()=>setRlcTopology($('rlcTopo').value);
 renderRlcParams(); renderRlcDiagram();

@@ -1,3 +1,4 @@
+import { bodeComponents } from './bode-terms.js';
 import { fmt, fx } from './format.js';
 import { K, S } from './model.js';
 
@@ -6,6 +7,100 @@ import { K, S } from './model.js';
    shared by several entries. */
 
 export const ENTRIES = {
+  /* Pojedynczy skladnik rozkladu: ktory to element ulamka transmitancji i co
+     dokladnie robi z modulem oraz z faza, i w ktorym miejscu osi pulsacji. */
+  'bterm'(A, d, ctx) {
+    const parts = bodeComponents(A);
+    const c = parts[(+d.bi || 1) - 1];
+    if (!c) return null;
+    const m = c.meta || {};
+    // wkład tego składnika w pulsacji odcięcia
+    const iAt = w => { let b = 0; for (let i = 1; i < A.w.length; i++) if (Math.abs(Math.log(A.w[i] / w)) < Math.abs(Math.log(A.w[b] / w))) b = i; return b; };
+    const atWc = A.wc ? (() => { const i = iAt(A.wc); return [['wkład do L(ω) w ω_c = ' + fx(A.wc), fmt(c.db[i], 4) + ' dB'],
+      ['wkład do fazy w ω_c', fmt(c.ph[i], 4) + '°']]; })() : [];
+
+    if (m.kind === 'k') {
+      return {kind:'Składnik Bodego', title:'Składnik ' + c.i + ': stałe wzmocnienie k = ' + fx(m.k),
+        what:'To nie jest osobny nawias w transmitancji. Powstaje ze zwinięcia wszystkiego, co stałe: wzmocnienia K oraz liczb wyciąganych przed nawias przy sprowadzaniu każdego czynnika do postaci (1 + τjω) — bo (s + a) = a·(1 + s/a), więc każdy biegun oddaje do k dzielnik a, a każde zero mnożnik a.',
+        formula:['k = K · Π aᵢ (zera) / Π aⱼ (bieguny)', 'L_k = 20·log₁₀|k| = const', 'arg k = 0° dla k > 0,  −180° dla k < 0'],
+        steps:[['k', fx(m.k)], ['20·log₁₀|k|', fmt(20 * Math.log10(Math.abs(m.k)), 4) + ' dB'],
+               ['wkład do fazy', (m.k < 0 ? '−180°' : '0°') + ' — na całej osi ω'], ...atWc],
+        result:'pozioma linia ' + fmt(20 * Math.log10(Math.abs(m.k)), 4) + ' dB, faza ' + (m.k < 0 ? '−180°' : '0°'),
+        note:'Zmiana k podnosi albo obniża CAŁĄ charakterystykę amplitudową o stałą liczbę decybeli, nie ruszając ani jednej pulsacji łamania i nie zmieniając kształtu fazy. Przesuwa za to ω_c wzdłuż istniejącego przebiegu — i dlatego samo zwiększanie wzmocnienia zjada zapas fazy.'};
+    }
+    if (m.kind === 'nu') {
+      return {kind:'Składnik Bodego', title:'Składnik ' + c.i + ': integratory 1/s' + (m.nu > 1 ? '^' + m.nu : ''),
+        what:'Czynnik s^ν stojący w MIANOWNIKU transmitancji — astatyzm rzędu ν. Każdy integrator dzieli przez jω, co w module oznacza dzielenie przez ω, a w fazie stałe przesunięcie o −90°.',
+        formula:['1/(jω)^ν', 'L = −20·ν·log₁₀ ω  [dB]', 'arg = −90°·ν = const'],
+        steps:[['ν', String(m.nu)],
+               ['nachylenie modułu', fmt(-20 * m.nu, 4) + ' dB/dekadę — na całej osi ω'],
+               ['przez 0 dB przy', 'ω = 1 rad/s (sam ten składnik)'],
+               ['wkład do fazy', fmt(-90 * m.nu, 4) + '° — stały, niezależny od ω'], ...atWc],
+        result:'prosta ' + fmt(-20 * m.nu, 4) + ' dB/dek, faza ' + fmt(-90 * m.nu, 4) + '°',
+        note:'Integrator jako jedyny czynnik zmienia nachylenie już od ω → 0, bez żadnej pulsacji łamania. Faza jest przez niego zjedzona raz na zawsze: przy ν = 2 zaczynamy od −180°, czyli od samego punktu krytycznego, i każdy kolejny biegun natychmiast wpycha hodograf w okrążenie.'};
+    }
+    if (m.kind === 'ord1') {
+      const zero = m.sgn > 0, nmf = m.tau < 0;
+      const slope = zero ? '+20' : '−20', dph = zero ? (nmf ? '−90°' : '+90°') : (nmf ? '+90°' : '−90°');
+      const half = zero ? (nmf ? '−45°' : '+45°') : (nmf ? '+45°' : '−45°');
+      return {kind:'Składnik Bodego', title:'Składnik ' + c.i + ': ' + (zero ? 'zero' : 'biegun') + ' w s = ' + fx(m.root) + (nmf ? ' (prawa półpłaszczyzna)' : ''),
+        what:'Czynnik (1 + ' + fx(m.tau, 3) + 'jω) w ' + (zero ? 'LICZNIKU' : 'MIANOWNIKU') + ' transmitancji, czyli '
+          + (zero ? 'zero' : 'biegun') + ' w punkcie s = ' + fx(m.root) + '. Stała czasowa T = ' + fx(Math.abs(m.tau), 3) + ' s. '
+          + 'Wszystko dzieje się wokół jednej pulsacji — pulsacji łamania ω_ł = 1/T = ' + fx(m.wb, 3) + ' rad/s.',
+        formula:['|1 + jωT| = √(1 + (ωT)²)  ⇒  L = ' + (zero ? '+' : '−') + '20·log₁₀√(1 + (ωT)²)',
+                 'arg = ' + (zero ? '+' : '−') + 'arctg(ωT)',
+                 'ω ≪ ω_ł:  L ≈ 0 dB, faza ≈ 0°',
+                 'ω ≫ ω_ł:  L ≈ ' + slope + '·log₁₀(ω/ω_ł) dB, faza ≈ ' + dph],
+        steps:[['miejsce w ułamku', zero ? 'licznik → podbija' : 'mianownik → tłumi'],
+               ['pulsacja łamania ω_ł', fx(m.wb, 4) + ' rad/s  (T = ' + fx(Math.abs(m.tau), 4) + ' s)'],
+               ['moduł poniżej ω_ł', '≈ 0 dB — składnik nic nie robi'],
+               ['moduł powyżej ω_ł', slope + ' dB/dekadę'],
+               ['moduł dokładnie w ω_ł', (zero ? '+3' : '−3') + ' dB względem asymptot (to jedyne miejsce, gdzie łamana kłamie)'],
+               ['faza: start ω → 0', '0°'],
+               ['faza w 0,1·ω_ł = ' + fx(m.wb / 10, 3), (zero ? (nmf ? '−' : '+') : (nmf ? '+' : '−')) + '5,7°'],
+               ['faza w ω_ł', half + ' — dokładnie połowa całej zmiany'],
+               ['faza w 10·ω_ł = ' + fx(m.wb * 10, 3), (zero ? (nmf ? '−' : '+') : (nmf ? '+' : '−')) + '84,3°'],
+               ['faza: koniec ω → ∞', dph], ...atWc],
+        result:(zero ? 'zero' : 'biegun') + ' w ' + fx(m.root) + ': ' + slope + ' dB/dek powyżej ' + fx(m.wb, 3) + ' rad/s, faza 0° → ' + dph,
+        note: nmf
+          ? 'UWAGA: pierwiastek leży w PRAWEJ półpłaszczyźnie (T < 0). Moduł zachowuje się identycznie jak dla lustrzanego czynnika stabilnego — z samego wykresu amplitudowego nie da się tego wykryć. Faza natomiast idzie w przeciwną stronę i to ona zjada zapas. Właśnie dlatego uproszczone kryterium Bodego zawodzi dla układów nieminimalnofazowych.'
+          : 'Przejście rozciąga się na dwie dekady: od 0,1·ω_ł do 10·ω_ł. Dlatego ' + (zero ? 'zero' : 'biegun') + ' oddalony nawet dziesięciokrotnie od ω_c wciąż wpływa na zapas fazy — to najczęściej pomijany efekt przy szacowaniu „na oko”.'};
+    }
+    if (m.kind === 'ord2') {
+      const zero = m.sgn > 0, res = m.z < 0.707 && m.z > 0;
+      const wr = res ? m.wn * Math.sqrt(1 - 2 * m.z * m.z) : null;
+      const Mr = res ? 1 / (2 * m.z * Math.sqrt(1 - m.z * m.z)) : null;
+      return {kind:'Składnik Bodego', title:'Składnik ' + c.i + ': para sprzężona w ' + (zero ? 'liczniku' : 'mianowniku') + ', ω_n = ' + fx(m.wn, 3),
+        what:'Nierozkładalny czynnik drugiego stopnia — para biegunów (albo zer) zespolonych sprzężonych. Odpowiada członowi oscylacyjnemu o pulsacji własnej ω_n = ' + fx(m.wn, 3) + ' rad/s i tłumieniu względnym ζ = ' + fx(m.z, 3) + '.',
+        formula:['1 + 2ζ(jω/ω_n) + (jω/ω_n)²',
+                 'ω ≪ ω_n:  L ≈ 0 dB',
+                 'ω ≫ ω_n:  L ≈ ' + (zero ? '+' : '−') + '40·log₁₀(ω/ω_n) dB',
+                 res ? 'rezonans:  ω_r = ω_n√(1 − 2ζ²),  M_r = 1/(2ζ√(1 − ζ²))' : 'ζ ≥ 0,707 → brak wierzchołka rezonansowego'],
+        steps:[['miejsce w ułamku', zero ? 'licznik' : 'mianownik'],
+               ['ω_n', fx(m.wn, 4) + ' rad/s'], ['ζ', fx(m.z, 4)],
+               ['nachylenie powyżej ω_n', (zero ? '+40' : '−40') + ' dB/dekadę'],
+               ['faza w ω_n', (zero ? '+90°' : '−90°') + ' — połowa zmiany'],
+               ['faza całkowita', (zero ? '+180°' : '−180°') + ' — dwa razy tyle co czynnik I rzędu'],
+               ...(res ? [['ω_r (szczyt rezonansu)', fx(wr, 4) + ' rad/s'],
+                          ['M_r', fx(Mr, 4) + ' = ' + fmt(20 * Math.log10(Mr), 4) + ' dB']]
+                       : [['rezonans', 'brak — ζ ≥ 0,707']]),
+               ...atWc],
+        result:'ω_n = ' + fx(m.wn, 3) + ', ζ = ' + fx(m.z, 3) + ' → ' + (zero ? '+40' : '−40') + ' dB/dek, faza 0° → ' + (zero ? '+180°' : '−180°'),
+        note:'Im mniejsze ζ, tym wyższy i węższy szczyt rezonansowy i tym gwałtowniej przeskakuje faza — przy ζ → 0 przejście przez ±180° robi się niemal skokowe, a asymptoty łamane stają się bezużyteczne. To jest ta sama para biegunów, którą na liniach pierwiastkowych widać jako punkt o kącie arccos ζ od osi rzeczywistej.'};
+    }
+    return {kind:'Składnik Bodego', title:'Składnik ' + c.i + ': opóźnienie transportowe e^(−jωT_d)',
+      what:'Czynnik e^(−T_d·s) mnożący całą transmitancję. Nie jest ułamkiem ani wielomianem — nie ma ani zer, ani biegunów, więc nie zmienia modułu ani o jeden decybel. Zabiera wyłącznie fazę, i to bez ograniczenia.',
+      formula:['|e^(−jωT_d)| = 1  ⇒  L = 0 dB dla każdej ω',
+               'arg = −ω·T_d [rad] = −57,3·ω·T_d [°]'],
+      steps:[['T_d', fx(m.Td, 4) + ' s'],
+             ['wkład do modułu', '0 dB — na całej osi ω'],
+             ['wkład do fazy przy ω = 1', fmt(-57.2958 * m.Td, 4) + '°'],
+             ['przy ω = 10', fmt(-572.958 * m.Td, 4) + '°'],
+             ['faza = −180° przy', fx(Math.PI / m.Td, 4) + ' rad/s'], ...atWc],
+      result:'0 dB, faza −57,3·ω·' + fx(m.Td, 3) + '° — liniowo malejąca',
+      note:'Na osi logarytmicznej liniowa zależność od ω wygląda jak krzywa opadająca coraz stromiej. Opóźnienie jest najgroźniejszym składnikiem: nie widać go na charakterystyce amplitudowej, a fazę odbiera bez końca. Dlatego przy T_d > 0 zapas fazy trzeba sprawdzać zawsze, a linie pierwiastkowe wymagają aproksymacji Padégo.'};
+  },
+
   'bd-mag'(A, d, ctx) {
   return {kind:'Charakterystyka Bodego', title:'L(\u03c9) \u2014 charakterystyka amplitudowa',
       what:'Modu\u0142 transmitancji widmowej w decybelach, na logarytmicznej osi pulsacji. Logarytm zamienia mno\u017cenie czynnik\u00f3w na dodawanie, dlatego wykres sk\u0142ada si\u0119 z odcink\u00f3w prostych o nachyleniach b\u0119d\u0105cych wielokrotno\u015bci\u0105 20 dB/dek.',

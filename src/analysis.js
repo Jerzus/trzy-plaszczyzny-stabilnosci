@@ -1,5 +1,5 @@
 import { C, DEG, cabs, carg, cdiv } from './complex.js';
-import { Gof, K, ND, S, expand, resp } from './model.js';
+import { Gof, K, ND, S, charRoots, expand, resp } from './model.js';
 import { nyquistPlan } from './nyquist-pq.js';
 import { polyRoots, polyaddK, polyder, polymul, polyvalC } from './poly.js';
 
@@ -124,14 +124,34 @@ function nyquistContour(lo, hi, eps, indent) {
     big.push({ th, g: Gof(C(whi * Math.cos(th), whi * Math.sin(th))) });
   }
 
-  const path = [...arcUp, ...pos, ...big, ...neg, ...arcDn].map(q => q.g);
+  const tag = (arr, src) => arr.map(q => ({ g: q.g, w: q.w, src }));
+  const walk = [...tag(arcUp, 'nq-arc-up'), ...tag(pos, 'nq-pos'), ...tag(big, 'nq-big'),
+                ...tag(neg, 'nq-neg'), ...tag(arcDn, 'nq-arc-dn')];
+  const path = walk.map(q => q.g);
   const ang = p => carg(C(p.re + 1, p.im));
   let acc = 0, prev = ang(path[0]);
   const step = a => { let d = a - prev; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; acc += d; prev = a; };
   for (let i = 1; i < path.length; i++) step(ang(path[i]));
   step(ang(path[0]));                   // the contour closes on itself at s = +eps
-  return { pos, neg, arcUp, arcDn, big, eps,
-           Ncw: Math.round(-acc / (2 * Math.PI)) };
+
+  /* The same count, done the way it is done by hand: draw the ray that leaves
+     (-1, j0) to the left and look at where the curve crosses it. Upward is one
+     clockwise turn (+1), downward one counter-clockwise turn (-1). Treating
+     Im = 0 as "not negative" makes every sign change count exactly once. */
+  const cuts = [];
+  for (let i = 0; i < walk.length; i++) {
+    const a = walk[i], b = walk[(i + 1) % walk.length];
+    if ((a.g.im < 0) === (b.g.im < 0)) continue;
+    const t = a.g.im / (a.g.im - b.g.im);
+    const re = a.g.re + t * (b.g.re - a.g.re);
+    if (!(re < -1)) continue;
+    cuts.push({ re, dir: a.g.im < 0 ? 1 : -1, src: a.src,
+                w: (a.w !== undefined && b.w !== undefined) ? a.w + t * (b.w - a.w) : null });
+  }
+
+  return { pos, neg, arcUp, arcDn, big, eps, cuts,
+           Nray: cuts.reduce((s, c) => s + c.dir, 0),
+           Ncw: Math.round(-acc / (2 * Math.PI)) || 0 };
 }
 
 /** Real-axis segments: rule 2 of the formula sheet (odd count to the right). */
@@ -195,20 +215,35 @@ export function analyse() {
   const curve = sweep(lo, hi);
 
   const { wc, pm } = gainCrossover(curve);
-  const { w180, reCross, gm } = phaseCrossover(curve);
+  let { w180, reCross, gm } = phaseCrossover(curve);
 
   const kp = S.nu === 0 ? Gof(C(1e-9, 0)).re : Infinity;
   const plan = nyquistPlan();
+
+  /* Non-minimum-phase systems can start ON the negative real axis: the phase
+     is already 180 degrees at omega = 0, so the phase crossover sits at the
+     very edge of the sweep, where Im G never changes sign and the search above
+     finds nothing. Take that endpoint as a crossing whenever it is the worst
+     one -- for G = (s-1)/[(s+1)(s+2)] it is the difference between GM = inf
+     and the true GM = 2 (the closed loop really does go unstable at K = 2). */
+  if (plan.d === 0 && plan.start && plan.start.re < -1e-12
+      && (reCross === null || Math.abs(plan.start.re) > Math.abs(reCross))) {
+    reCross = plan.start.re; w180 = 0; gm = 1 / Math.abs(reCross);
+  }
   const Rview = viewRadius(reCross, kp);
   const eps = indentRadius(lo, plan.d, plan.c, Rview);
   const cont = nyquistContour(lo, hi, eps, plan.nStages === 5);
 
   const Popen = P.filter(p => p.re > 1e-9).length;
+  // Independent of the whole drawing: roots of D(s) + K*N(s). Exact unless a
+  // transport delay forces the first-order Pade approximation.
+  const clRoots = charRoots(K());
+  const clRHP = clRoots.filter(r => r.re > 1e-9).length;
 
   return {
     lo, hi, ...curve,
     wc, pm, w180, gm, reCross,
-    ...cont, P: Popen, Z: cont.Ncw + Popen, kp, Rview, plan,
+    ...cont, P: Popen, Z: cont.Ncw + Popen, kp, Rview, plan, clRoots, clRHP,
     poles: P, zeros: Z,
     ...locusGeometry(P, Z),
   };

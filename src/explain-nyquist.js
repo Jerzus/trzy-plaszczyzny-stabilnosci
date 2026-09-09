@@ -191,6 +191,28 @@ export const ENTRIES = {
       result: p.bigArc? 'punkt ( '+fx(p.bigArc.re)+' , j'+fx(p.bigArc.im)+' )' : 'niewłaściwa transmitancja',
       note:'Dla n = m łuk odwzorowuje się w punkt bₘ/aₙ na osi rzeczywistej, a nie w zero. Przy opóźnieniu transportowym e^(−T_d s) na tym łuku Re s > 0, więc czynnik ten dodatkowo tłumi — punkt pozostaje w zerze.'};
   },
+  'nq-criterion'(A, d, ctx) {
+    const rhp = A.poles.filter(q => q.re > 1e-9);
+    const cuts = A.cuts.map(c => ['przecięcie w ' + fx(c.re) + (c.w === null ? '' : ' (ω = ' + fx(Math.abs(c.w)) + ')'),
+      (c.dir > 0 ? 'w górę → +1' : 'w dół → −1')]);
+    return {kind:'Kryterium Nyquista', title:'Z = N + P — skąd się bierze i jak się z tego korzysta',
+      what:'Kryterium nie jest regułą pamięciową, tylko wnioskiem z zasady argumentu Cauchy’ego. Zasada mówi: jeżeli funkcja F(s) jest analityczna na zamkniętym konturze i wewnątrz niego ma Z_F zer oraz P_F biegunów, to obraz tego konturu okrąża punkt 0 dokładnie Z_F − P_F razy, w tę samą stronę, w którą obiegany jest kontur. Bierzemy F(s) = 1 + Gₒ(s) i kontur obejmujący CAŁĄ prawą półpłaszczyznę — wtedy „zera wewnątrz” to niestabilne bieguny układu zamkniętego.',
+      formula:['F(s) = 1 + Gₒ(s) = 1 + L(s)/M(s) = [M(s) + L(s)] / M(s)',
+               'zera F  =  pierwiastki M + L  =  bieguny układu ZAMKNIĘTEGO  ⇒  Z_F = Z',
+               'bieguny F  =  pierwiastki M  =  bieguny układu OTWARTEGO   ⇒  P_F = P',
+               'N = Z_F − P_F   (okrążenia zera przez F, zgodnie ze wskazówkami)',
+               '⇒  Z = N + P ,   stabilność ⇔ Z = 0',
+               'F okrąża 0  ⇔  Gₒ = F − 1 okrąża (−1, j0)'],
+      steps:[['krok 1 — P z transmitancji', rhp.length ? rhp.map(q => fx(q.re) + (Math.abs(q.im) > 1e-9 ? '±j' + fx(Math.abs(q.im)) : '')).join(', ') + ' ⇒ P = ' + A.P : 'brak biegunów Re > 0 ⇒ P = 0'],
+             ['biegun w s = 0', S.nu ? 'wykluczony przez wcięcie — nie wchodzi do P' : 'brak'],
+             ['krok 2 — N z rysunku (przyrost argumentu)', String(A.Ncw)],
+             ['krok 2′ — N z przecięć półprostej', String(A.Nray)],
+             ...cuts,
+             ['krok 3 — Z = N + P', A.Nray + ' + ' + A.P + ' = ' + A.Z],
+             ['kontrola: pierwiastki D + K·N o Re > 0', String(A.clRHP)]],
+      result: A.Z === 0 ? 'Z = 0 → układ zamknięty STABILNY' : 'Z = ' + A.Z + ' → układ zamknięty NIESTABILNY',
+      note:'Dlaczego okrążamy (−1, j0), a nie zero: rysowanie F = 1 + Gₒ oznaczałoby przesunięcie całej krzywej o +1 w prawo. Taniej jest przesunąć punkt odniesienia o −1 i rysować sam Gₒ. Dlaczego N liczy się zgodnie z ruchem wskazówek: bo kontur Nyquista obiega prawą półpłaszczyznę właśnie w tę stronę, a zasada argumentu wymaga zgodności zwrotów. Ręczna metoda z półprostą działa dla dowolnej półprostej wychodzącej z (−1, j0) — w lewo jest najwygodniej, bo tam zwykle leżą przecięcia z osią rzeczywistą.'};
+  },
   'nq-phi0'(A, d, ctx) {
     const p = A.plan;
     return {kind:'Hodograf', title:'φ₀ — kąt położenia startu hodografu',

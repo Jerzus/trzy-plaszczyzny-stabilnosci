@@ -30,7 +30,13 @@ karty w stylu kart przeglądarki:
   współczynnikami `aᵢ` w sprzężeniach i `bᵢ` w torach w przód. Do tego siedem obwodów
   RLC/RC/RL rysowanych prawdziwymi symbolami elektrycznymi (rezystor, cewka,
   kondensator, węzły, zaciski `u₁`/`u₂`), z transmitancją i modelem stanowym
-  wyprowadzonymi z równań obwodu.
+  wyprowadzonymi z równań obwodu. Obok nich pięć **układów mechanicznych**
+  masa–sprężyna–tłumik, rysowanych symbolami mechanicznymi (utwierdzenie z
+  kreskowaniem, zygzak sprężyny, cylinder tłumika, blok masy, strzałka siły i
+  współrzędna `x`) i opisanych tymi samymi równaniami — analogia siła–napięcie
+  `m ↔ L`, `b ↔ R`, `1/k ↔ C` daje identyczne transmitancje, łącznie z układem
+  bez sprężyny, który jest astatyzmem rzędu 1, i zawieszeniem z wymuszeniem
+  kinematycznym podstawy, które wnosi zero.
 
 ## Hodograf krok po kroku: P(ω), Q(ω) i etapy konturu
 
@@ -117,6 +123,36 @@ numerami co w tabeli. Bez tego domknięcia krzywa jest otwarta i okrążeń punk
 krytycznego po prostu nie da się policzyć — a to najczęstszy błąd przy
 rysowaniu ręcznym.
 
+## Kryterium Nyquista krok po kroku
+
+Osobna karta rozpisuje `Z = N + P` na trzy kroki i pokazuje, skąd ten wzór się bierze.
+Podstawą jest **zasada argumentu Cauchy'ego**: jeżeli `F(s)` jest analityczna na zamkniętym
+konturze i ma wewnątrz niego `Z_F` zer oraz `P_F` biegunów, to obraz konturu okrąża punkt
+`0` dokładnie `Z_F − P_F` razy, w tę samą stronę, w którą obiegany jest kontur. Dla
+`F(s) = 1 + G_o(s) = [M(s) + L(s)]/M(s)`:
+
+- zera `F` to pierwiastki `M + L`, czyli bieguny układu **zamkniętego** ⇒ `Z_F = Z`,
+- bieguny `F` to pierwiastki `M`, czyli bieguny układu **otwartego** ⇒ `P_F = P`,
+- `F` okrąża `0` dokładnie wtedy, gdy `G_o = F − 1` okrąża `(−1, j0)`,
+
+stąd `N = Z − P`, czyli `Z = N + P`, a stabilność ⇔ `Z = 0`.
+
+`N` liczone jest dwiema niezależnymi metodami, które muszą dać ten sam wynik:
+przez **przyrost argumentu** `1 + G_o(s)` wzdłuż całego konturu oraz **z przecięć
+półprostej** wychodzącej z `(−1, j0)` w lewo — tak, jak liczy się to ręcznie: przecięcie
+w górę to `+1` (zgodnie ze wskazówkami), w dół `−1`. Karta wypisuje każde przecięcie
+z jego wartością, kierunkiem, numerem etapu konturu i pulsacją. Trzecią, całkowicie
+niezależną kontrolą jest liczba pierwiastków `D(s) + K·N(s)` o `Re > 0`.
+
+Zapasy podawane są zawsze w obu postaciach: `GM` jako krotność i jako `M_g` w decybelach.
+
+**Przecięcie fazowe w `ω = 0`.** Układy nieminimalnofazowe potrafią startować wprost na
+ujemnej półosi rzeczywistej — faza wynosi wtedy `180°` już przy `ω = 0`, więc pulsacja
+odcięcia fazowego leży na samym krańcu pasma i zwykłe szukanie zmiany znaku `Im G_o`
+niczego nie znajduje. Dla `G_o = (s − 1)/[(s+1)(s+2)]` daje to `GM = 1/|k_p| = 2`
+(`6,02 dB`) przy `ω_180 = 0`, co zgadza się z równaniem charakterystycznym
+`s² + (3+K)s + (2−K)`: granica stabilności leży dokładnie przy `K = 2`.
+
 ## Rozkład Bodego na składniki
 
 Wykres Bodego rysuje każdy czynnik osobno, linią przerywaną we własnym kolorze —
@@ -132,6 +168,15 @@ z wykładu `G(s) = 5(s+10)/((s−0,2)(s+100))` daje to dokładnie
 Poprawność rozkładu jest sprawdzana numerycznie: suma składników musi odtworzyć
 krzywą wypadkową co do bitu, również dla par zespolonych, biegunów w prawej
 półpłaszczyźnie, ujemnego `K` i opóźnienia transportowego.
+
+W trybie wyjaśnień każdy składnik jest klikalny i opisuje sam siebie: którym elementem
+ułamka transmitancji jest (licznik czy mianownik, zero czy biegun, w którym punkcie
+płaszczyzny `s`), jakie ma nachylenie modułu i **od której pulsacji** ono obowiązuje,
+o ile stopni i **w którym miejscu osi** przestawia fazę (`±45°` dokładnie w pulsacji
+łamania, `±5,7°` dekadę przed, `±84,3°` dekadę za), ile wynosi błąd asymptot w samym
+załamaniu (`±3 dB`) oraz jaki wkład wnosi w `ω_c`. Człon oscylacyjny dokłada do tego
+`ω_r` i `M_r`, integratory — nachylenie od `ω → 0` i stałe `−90°·ν`, a opóźnienie
+transportowe zaznacza, że modułu nie zmienia wcale, a fazę odbiera bez ograniczenia.
 
 ## Tryb wyjaśnień
 
@@ -173,14 +218,14 @@ przeglądarka ładuje moduły bezpośrednio.
 
 ## Struktura
 
-`index.html` (sama struktura), `styles.css` oraz `src/` — 27 modułów ES ułożonych
+`index.html` (sama struktura), `styles.css` oraz `src/` — 28 modułów ES ułożonych
 w warstwy, bez ani jednego cyklu w grafie zależności:
 
 | warstwa | moduły |
 |---|---|
 | bez zależności | `complex.js`, `format.js`, `dom.js` |
 | matematyka | `poly.js`, `model.js`, `nyquist-pq.js`, `analysis.js`, `routh.js`, `statespace.js`, `blocks.js`, `circuits.js`, `bode-terms.js` |
-| rysowanie | `plot-core.js`, `plot-locus.js`, `plot-nyquist.js`, `plot-bode.js`, `fig-common.js`, `fig-block.js`, `fig-sim.js`, `fig-circuit.js` |
+| rysowanie | `plot-core.js`, `plot-locus.js`, `plot-nyquist.js`, `plot-bode.js`, `fig-common.js`, `fig-block.js`, `fig-sim.js`, `fig-circuit.js`, `fig-mech.js` |
 | panele | `panel-tf.js`, `panel-nyquist.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js` |
 | wyjaśnienia | `explain.js` (dyspozytor) + `explain-helpers.js` i pięć tablic tematycznych `explain-*.js` |
 | wejście | `app.js` — okablowanie, karty, autotest |

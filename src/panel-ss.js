@@ -2,6 +2,7 @@ import { RLC_DEF, RLC_TOPOS, RLC_UNIT } from './circuits.js';
 import { C } from './complex.js';
 import { $, col } from './dom.js';
 import { rlcSchematic } from './fig-circuit.js';
+import { mechSchematic } from './fig-mech.js';
 import { fitFig } from './fig-common.js';
 import { simDiagram } from './fig-sim.js';
 import { esc, fracHtml, fx } from './format.js';
@@ -112,10 +113,14 @@ export function renderRlcParams(){
 
 export function renderRlcDiagram(){
   const t=RLC_TOPOS[RLC_SEL.key];
-  $('rlcDiagram').innerHTML = rlcSchematic(t, RLC_DEF);
+  const mech = t.kind==='mech';
+  $('rlcDiagram').innerHTML = mech? mechSchematic(t, RLC_DEF) : rlcSchematic(t, RLC_DEF);
   fitFig($('rlcDiagram'));
-  $('rlcNote').innerHTML = 'Wz\u00f3r z r\u00f3wna\u0144 obwodu: <b>'+esc(t.eq)+'</b>. '
-    + 'Przerywana ramka pokazuje, na czym mierzone jest wyj\u015bcie y \u2014 st\u0105d bior\u0105 si\u0119 macierze C i D poni\u017cej.';
+  $('rlcNote').innerHTML = (t.law? esc(t.law)+'. ' : '')
+    + 'St\u0105d <b>'+esc(t.eq)+'</b>. '
+    + 'Przerywana ramka pokazuje, na czym mierzone jest wyj\u015bcie y \u2014 st\u0105d bior\u0105 si\u0119 macierze C i D poni\u017cej.'
+    + (mech? ' <br>Analogia si\u0142a\u2013napi\u0119cie: <b>m \u2194 L</b>, <b>b \u2194 R</b>, <b>1/k \u2194 C</b>, si\u0142a \u2194 napi\u0119cie, pr\u0119dko\u015b\u0107 \u2194 pr\u0105d. '
+      + 'Ten sam uk\u0142ad r\u00f3wna\u0144 co w obwodzie \u2014 wi\u0119c i ta sama transmitancja, te same bieguny i ten sam hodograf.' : '');
 }
 
 export function setRlcTopology(key){ RLC_SEL.key=key; renderRlcParams(); renderRlcDiagram(); applyRlc(); }

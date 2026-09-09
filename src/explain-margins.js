@@ -43,12 +43,22 @@ export const ENTRIES = {
           : 'UWAGA: P = '+A.P+', a uk\u0142ad '+((A.zeros.every(z=>z.re<=1e-9)&&S.Td===0)?'':'nie ')+'jest minimalnofazowy. Uproszczone kryterium Bodego tutaj NIE obowi\u0105zuje \u2014 dodatni zapas fazy nie dowodzi stabilno\u015bci. Wi\u0105\u017c\u0105cy jest bilans okr\u0105\u017ce\u0144: Z = '+A.Z+'.'};
   },
   'w180'(A, d, ctx) {
-      if(!A.w180) return {kind:'Zapas stabilno\u015bci', title:'\u03c9\u2081\u2088\u2080 \u2014 pulsacja odci\u0119cia fazowego',
+      if(A.w180===null) return {kind:'Zapas stabilno\u015bci', title:'\u03c9\u2081\u2088\u2080 \u2014 pulsacja odci\u0119cia fazowego',
         what:'Pulsacja, przy kt\u00f3rej faza osi\u0105ga \u2212180\u00b0, czyli hodograf przecina ujemn\u0105 p\u00f3\u0142o\u015b rzeczywist\u0105. W notatkach: \u03c9_pc (phase crossover).',
         formula:['arg G\u2092(j\u03c9\u2081\u2088\u2080) = \u2212180\u00b0   \u21d4   Im G\u2092(j\u03c9\u2081\u2088\u2080) = 0  przy  Re G\u2092 < 0'],
         steps:[['przeci\u0119cie z ujemn\u0105 p\u00f3\u0142osi\u0105 Re','brak w badanym pa\u015bmie']],
         result:'\u03c9\u2081\u2088\u2080 nie istnieje \u2192 GM = \u221e',
         note:'\u017beby faza dosz\u0142a do \u2212180\u00b0, potrzeba co najmniej trzech biegun\u00f3w albo integratora z dwiema inercjami. Uk\u0142ad I i II rz\u0119du bez zer i bez astatyzmu zawsze ma GM = \u221e.'};
+      if(A.w180===0) return {kind:'Zapas stabilno\u015bci', title:'\u03c9\u2081\u2088\u2080 = 0 \u2014 przeci\u0119cie fazowe w zerze',
+        what:'Hodograf startuje wprost NA ujemnej p\u00f3\u0142osi rzeczywistej: faza wynosi 180\u00b0 ju\u017c przy \u03c9 = 0, wi\u0119c pulsacja odci\u0119cia fazowego le\u017cy dok\u0142adnie na kra\u0144cu pasma. Tak zachowuj\u0105 si\u0119 uk\u0142ady nieminimalnofazowe (rzeczywiste zero albo biegun w prawej p\u00f3\u0142p\u0142aszczy\u017anie) oraz uk\u0142ady z ujemnym K.',
+        formula:['\u03c6\u2080 = arg G\u2092(j0\u207a) = 180\u00b0  \u21d2  \u03c9\u2081\u2088\u2080 = 0',
+                 'GM = 1 / |G\u2092(j0)| = 1 / |k_p|'],
+        steps:[['\u03c6\u2080', fmt(A.plan.phi0,4)+'\u00b0'],
+               ['k_p = G\u2092(0)', fx(A.kp)],
+               ['GM = 1/|k_p|', fx(A.gm)],
+               ['M_g', fmt(20*Math.log10(A.gm),4)+' dB']],
+        result:'\u03c9\u2081\u2088\u2080 = 0 rad/s,  GM = '+fx(A.gm)+' = '+fmt(20*Math.log10(A.gm),4)+' dB',
+        note:'Zwyk\u0142e szukanie zmiany znaku Im G\u2092 tego przypadku nie znajduje \u2014 cz\u0119\u015b\u0107 urojona dotyka zera dopiero w samym kra\u0144cu \u03c9 = 0. Kontrola: dla G\u2092 = (s\u22121)/[(s+1)(s+2)] r\u00f3wnanie charakterystyczne to s\u00b2 + (3+K)s + (2\u2212K), czyli granica stabilno\u015bci le\u017cy przy K = 2 \u2014 dok\u0142adnie tyle, ile wynosi tu GM.'};
       const t=phTerms(A.w180), m=magTerms(A.w180);
       return {kind:'Zapas stabilno\u015bci', title:'\u03c9\u2081\u2088\u2080 \u2014 pulsacja odci\u0119cia fazowego',
         what:'Pulsacja, przy kt\u00f3rej faza osi\u0105ga \u2212180\u00b0. Hodograf przecina wtedy ujemn\u0105 p\u00f3\u0142o\u015b rzeczywist\u0105, a na wykresie Bodego charakterystyka fazowa tnie lini\u0119 \u2212180\u00b0. W notatkach oznaczana \u03c9_pc. To tutaj odczytuje si\u0119 zapas wzmocnienia.',

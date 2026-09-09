@@ -451,6 +451,20 @@ table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,tran
   background:color-mix(in srgb,var(--amber) 12%,transparent);
   border:1px solid color-mix(in srgb,var(--amber) 40%,transparent); color:var(--ink);
 }
+.crit-steps{display:flex; flex-direction:column; gap:9px; padding:10px 0 14px}
+.crit-step{display:grid; grid-template-columns:26px 1fr; gap:10px; align-items:start; font-size:12.5px; line-height:1.6}
+.crit-step > b{
+  display:grid; place-items:center; width:22px; height:22px; border-radius:50%;
+  border:1px solid var(--accent); color:var(--accent);
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600;
+}
+.crit-step > span{color:var(--muted)}
+.crit-step > span b{color:var(--ink)}
+.crit-sum{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 0 2px}
+.crit-eq{font-family:"IBM Plex Mono",monospace; font-size:14px; font-variant-numeric:tabular-nums}
+.crit-eq b{color:var(--accent)}
+table.cut-table td.rowlab{font-variant-numeric:tabular-nums; color:var(--ink)}
+
 table.stage-table td, table.stage-table th{text-align:left; white-space:nowrap}
 table.stage-table td.rowlab{white-space:nowrap}
 table.stage-table td.wide{white-space:normal; min-width:220px; color:var(--muted)}

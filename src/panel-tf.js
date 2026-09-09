@@ -43,13 +43,15 @@ export function renderTF(A){
     ? `<span class="verdict ok" data-ex="verdict" tabindex="0" role="button">Układ zamknięty stabilny · Z = 0</span>`
     : `<span class="verdict no" data-ex="verdict" tabindex="0" role="button">Niestabilny · Z = ${A.Z} ${A.Z===1?'biegun':'bieguny/biegunów'} w prawej półpłaszczyźnie</span>`;
 
-  const gmdb = isFinite(A.gm)? fmt(20*Math.log10(A.gm))+' dB' : '∞';
+  // Zapas wzmocnienia zawsze w obu postaciach: raz jako krotność, raz w dB.
+  const gmTxt = isFinite(A.gm)
+    ? fmt(A.gm)+'  ('+fmt(20*Math.log10(A.gm))+' dB)'
+    : '∞';
   const rows=[
     ['ω<sub>c</sub>', A.wc? fmt(A.wc)+' rad/s':'brak', 'wc'],
     ['zapas fazy PM', A.pm===null? '—' : fmt(A.pm)+'°', 'pm'],
-    ['ω<sub>180</sub>', A.w180? fmt(A.w180)+' rad/s':'brak', 'w180'],
-    ['zapas wzm. GM', isFinite(A.gm)? fmt(A.gm):'∞', 'gm'],
-    ['GM w dB', gmdb, 'gmdb'],
+    ['ω<sub>180</sub>', A.w180!==null? fmt(A.w180)+' rad/s':'brak', 'w180'],
+    ['zapas wzm. GM', gmTxt, 'gm'],
     ['przecięcie osi Re', A.reCross!==null? fmt(A.reCross):'brak', 'recross'],
     ['okrążenia N', String(A.Ncw), 'N'],
     [S.nu===0?'k<sub>p</sub> (uchyb 1/(1+k<sub>p</sub>))':'wzm. statyczne', S.nu===0? `${fmt(A.kp)} → e(∞) = ${fmt(1/(1+A.kp))}` : '∞ → e(∞) = 0', 'kp'],
