@@ -34,40 +34,15 @@ karty w stylu kart przeglądarki:
   masa–sprężyna–tłumik — jedne i drugie z transmitancją oraz modelem stanowym
   wyprowadzonymi z równań obiektu.
 
-## Rozkład Bodego na składniki
-
-Wykres Bodego rysuje każdy czynnik osobno, linią przerywaną we własnym kolorze —
-tak, jakby ten czynnik występował sam. Pod wykresem wypisane są obie sumy,
-`20·log₁₀|G(jω)|` w dB oraz `arg G(jω)` w stopniach, a każdy wyraz jest opatrzony
-tym samym numerem i kolorem co odpowiadająca mu krzywa.
-
-Czynniki sprowadzane są do postaci czasowej `(1 + τjω)` używanej na wykładzie, a
-stałe wyciągnięte przed nawias zbierane są w jednym składniku `k`. Dla przykładu
-z wykładu `G(s) = 5(s+10)/((s−0,2)(s+100))` daje to dokładnie
-`k = −2,5`, `+(1 + 0,1jω)`, `−(1 − 5jω)`, `−(1 + 0,01jω)`.
-
-Poprawność rozkładu jest sprawdzana numerycznie: suma składników musi odtworzyć
-krzywą wypadkową co do bitu, również dla par zespolonych, biegunów w prawej
-półpłaszczyźnie, ujemnego `K` i opóźnienia transportowego.
-
 ## Tryb wyjaśnień
 
 Przełącznik **Tryb wyjaśnień** w nagłówku uaktywnia warstwę dydaktyczną. Każda wyliczona
 liczba, każdy zaznaczony punkt i każda linia na wykresie stają się klikalne i pokazują:
-
 - co dana wielkość znaczy fizycznie,
 - wzór ogólny w notacji z karty wzorów przedmiotu,
 - przebieg obliczenia rozbity na czynniki, z podstawionymi bieżącymi wartościami,
 - wynik i jego interpretację, wraz z ostrzeżeniami o warunkach stosowalności.
-
-Objęte są między innymi: `K`, `T_d`, `ν`, `P`, `Z`, `N`, `ω_c` (`ω_gc`), `ω_180` (`ω_pc`),
-zapas fazy, zapas wzmocnienia `M_g`, przecięcie z osią Re, `k_p`, bieguny i zera układu
-otwartego, bieguny układu zamkniętego (z `ζ`, `ω_n`, `M_p` i czasami ustalania), asymptoty
-i punkt `δ`, punkty rozejścia się linii, odcinki na osi rzeczywistej, obie krzywe Bodego,
-linie odniesienia 0 dB i −180°, pulsacje łamania, punkt krytyczny `(−1, j0)`, obie gałęzie
-hodografu, łuki wcięcia i okrąg jednostkowy, etapy konturu, oraz każdy składnik
-rozkładu Bodego z osobna.
-
+  
 W tym trybie wykres linii pierwiastkowych dorysowuje też asymptoty, punkt `δ`, punkty
 rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji łamania.
 
