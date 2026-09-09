@@ -69,7 +69,7 @@ export function refreshRouth(A){
         ? `<span class="verdict ok">Z = 0 \u2014 wszystkie pierwiastki w lewej p\u00f3\u0142p\u0142aszczy\u017anie, uk\u0142ad zamkni\u0119ty stabilny</span>`
         : `<span class="verdict no">Z = ${rt.Z} \u2014 tyle zmian znaku w pierwszej kolumnie, tyle pierwiastk\u00f3w w prawej p\u00f3\u0142p\u0142aszczy\u017anie</span>`)
       + `<span style="font-size:12px; color:${crossOk?'var(--muted)':'var(--bad)'}">Kontrola wzgl\u0119dem konturu Nyquista (karta Analiza): Z\u2099\u1d67\u2071 = ${A.Z} \u2014 ${crossOk?'zgodne.':'ROZBIE\u017bNO\u015a\u0106 \u2014 sprawd\u017a T_d (Pad\u00e9 zniekszta\u0142ca wielomian) albo epsilon-podstawienie w wierszu zerowym.'}</span>`;
-    $('routhNote').textContent = 'Kolumny bez wpisu (puste miejsce po prawej) licz jako zera. Migaj\u0105ca strza\u0142ka przy pierwszej kolumnie oznacza zmian\u0119 znaku.';
+    $('routhNote').textContent = 'Puste miejsca licz jako zera. Strza\u0142ka = zmiana znaku.';
   } else {
     $('routhTableBox').innerHTML='<p class="note">Wielomian sta\u0142y \u2014 brak dynamiki do zbadania.</p>';
     $('routhVerdictBox').innerHTML='';

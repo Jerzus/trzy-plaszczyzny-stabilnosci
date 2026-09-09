@@ -95,19 +95,10 @@ export function renderNyquistPanel(A) {
     + (A.Z === 0 ? 'Z = 0 → układ zamknięty stabilny' : 'Z = ' + A.Z + ' → układ zamknięty niestabilny') + '</span>'
     + '</div>'
     + '<p class="note" style="padding:10px 0 0">'
-    + 'Kontrola niezależna od rysunku: pierwiastki równania charakterystycznego D(s) + K·N(s) = 0 dają '
-    + `<b>${A.clRHP}</b> ${A.clRHP === 1 ? 'pierwiastek' : 'pierwiastków'} o Re > 0`
-    + (A.clRHP === A.Z ? ' — zgodnie z kryterium.' : ' — <b>rozbieżność z kryterium!</b>')
-    + (S.Td > 0 ? ' Uwaga: przy T<sub>d</sub> > 0 ta kontrola używa aproksymacji Padégo, więc sama jest przybliżona; kryterium Nyquista pozostaje ścisłe.' : '')
-    + ' Przy Z = 0 sensu nabierają zapasy: PM = ' + (A.pm === null ? '—' : fmt(A.pm, 4) + '°')
-    + ', GM = ' + gmTxt + '.'
+    + `Kontrola: pierwiastki D(s) + K·N(s) dają <b>${A.clRHP}</b> o Re > 0`
+    + (A.clRHP === A.Z ? '.' : ' — <b>rozbieżność!</b>')
+    + (A.Z === 0 ? '  ·  PM = ' + (A.pm === null ? '—' : fmt(A.pm) + '°') + '  ·  GM = ' + gmTxt : '')
+    + (S.Td > 0 ? '  ·  kontrola przez Padégo, więc przybliżona' : '')
     + '</p>';
 
-  const q = pl.reCrossAll.filter(v => v.P < 0);
-  $('pqNote').innerHTML =
-    'Kolejność etapów jest kolejnością obchodzenia konturu, zaczynając od s = +ε na osi rzeczywistej. '
-    + (pl.nStages === 5
-      ? 'Wcięcie jest konieczne, bo kontur Cauchy’ego nie może przechodzić przez miejsce zerowe funkcji ani jej bieguna — omija je łukiem o promieniu ε → 0, przechodząc nieskończenie blisko punktu (0, j0), ale po stronie prawej półpłaszczyzny.'
-      : 'Wcięcie nie jest potrzebne — Gₒ(s) jest w s = 0 skończone i różne od zera, więc kontur przechodzi przez początek układu bez omijania.')
-    + (q.length ? ' Ujemną półoś rzeczywistą krzywa tnie ' + q.length + '× — najgorsze przecięcie ' + fx(Math.min(...q.map(v => v.P))) + ' decyduje o zapasie wzmocnienia.' : '');
 }

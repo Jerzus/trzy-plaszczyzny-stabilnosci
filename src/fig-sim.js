@@ -112,7 +112,7 @@ export function simDiagram(tf){
   return {svg:`<svg class="fig" style="--figw:${W}px" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Schemat symulacyjny">`
     +`<defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">`
     +`<path d="M 0 0 L 10 5 L 0 10 z" fill="var(--ink)"/></marker></defs>${g}</svg>`,
-   note:'Rz\u0105d n = '+n+'. Wsp\u00f3\u0142czynniki w blokach to a\u1d62 (w d\u00f3\u0142, do sumatora wej\u015bciowego, ze znakiem minus) oraz b\u1d62 (w g\u00f3r\u0119, do wyj\u015bcia) po sprowadzeniu mianownika do postaci monicznej. Wyj\u015bcia kolejnych integrator\u00f3w to E/s, E/s\u00b2, \u2026 \u2014 dok\u0142adnie zmienne stanu modelu poni\u017cej.'};
+   note:'Rz\u0105d n = '+n+'. Wyj\u015bcia integrator\u00f3w to zmienne stanu modelu poni\u017cej.'};
 }
 
 /* ---------- simple RLC circuits drawn with real component symbols ---------- */

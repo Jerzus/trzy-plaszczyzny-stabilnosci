@@ -207,15 +207,4 @@ export function drawNyquist(A) {
     hotP('nq', X(g.re), Y(g.im), 'nq-wc', g); halo(ctx, X(g.re), Y(g.im));
   }
   ctx.restore();
-
-  const stageTxt = five
-    ? `W transmitancji jest miejsce zerowe w s = 0 (ν = ${pl.nu}, μ = ${pl.mu}), więc kontur omija je wcięciem i hodograf rysuje się w <b>5 etapach</b>; łuk wcięcia zatacza ${fmt(Math.abs(pl.d) * 180)}° ${pl.d > 0 ? 'zgodnie z ruchem wskazówek' : 'przeciwnie do ruchu wskazówek'}.`
-    : 'Brak miejsca zerowego w s = 0, więc kontur nie wymaga wcięcia i hodograf rysuje się w <b>3 etapach</b>.';
-
-  $('nqNote').innerHTML =
-    stageTxt + ' '
-    + `Okrążenia punktu (−1, j0): <b>N = ${A.Ncw}</b> (dodatnie = zgodnie z ruchem wskazówek). `
-    + `Bieguny otwarte w prawej półpłaszczyźnie: <b>P = ${A.P}</b>. `
-    + `Stąd <b>Z = N + P = ${A.Z}</b>` + (A.Z === 0 ? ' — brak biegunów zamkniętych w prawej półpłaszczyźnie.' : ' — tyle biegunów układu zamkniętego leży w prawej półpłaszczyźnie.')
-    + (A.reCross !== null ? ` Przecięcie z osią Re: ${fmt(A.reCross)} przy ω = ${fmt(A.w180)} rad/s.` : ' Krzywa nie tnie ujemnej półosi rzeczywistej, więc GM = ∞.');
 }

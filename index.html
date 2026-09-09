@@ -11,7 +11,7 @@
 
 <header class="masthead">
   <h1>Trzy płaszczyzny <span>·</span> s <span>·</span> ω <span>·</span> G(jω)</h1>
-  <p>Jedna transmitancja układu otwartego, oglądana równocześnie jako linie pierwiastkowe, charakterystyki Bodego i hodograf Nyquista. Zmień cokolwiek w panelu sterowania — wszystkie trzy widoki przeliczają się razem.</p>
+  <p>Jedna transmitancja układu otwartego w trzech widokach naraz.</p>
   <button class="explain-btn" id="explainBtn" type="button" aria-pressed="false">
     <span class="led" aria-hidden="true"></span>Tryb wyjaśnień
   </button>
@@ -25,8 +25,7 @@
 </nav>
 
 <div class="exp-hint" id="expHint" hidden>
-  Tryb wyjaśnień aktywny — kliknij dowolną liczbę w panelach albo punkt, krzywą lub linię na wykresie,
-  żeby zobaczyć wzór, przebieg obliczenia i znaczenie. Klikalne punkty mają kropkowaną aureolę.
+  Kliknij dowolną liczbę, punkt albo krzywą, żeby zobaczyć wzór i obliczenie.
 </div>
 
 <div class="shell" id="shellAnalysis">
@@ -60,7 +59,7 @@
       <button id="addPole">+ biegun</button>
       <button id="addZero">+ zero</button>
     </div>
-    <p class="note" style="padding:0; margin:2px 0 0">Im ≠ 0 dodaje automatycznie parę sprzężoną. Re &gt; 0 oznacza czynnik w prawej półpłaszczyźnie i zwiększa P.</p>
+    <p class="note" style="padding:0; margin:2px 0 0">Im ≠ 0 dodaje parę sprzężoną. Re &gt; 0 zwiększa P.</p>
   </div>
 
   <div class="group">
@@ -83,7 +82,6 @@
   <section class="card">
     <header>
       <h2>Transmitancja układu otwartego</h2>
-      <p>Postać budowana z aktywnych czynników. Czynniki są sprowadzone do (s + a), znaki trafiają do K.</p>
     </header>
     <div class="tf">
       <div class="frac" id="tfBox"></div>
@@ -99,7 +97,6 @@
     <section class="card">
       <header>
         <h2>Linie pierwiastkowe</h2>
-        <p>Wędrówka biegunów zamkniętych przy zmianie k od 0 do 4K.</p>
       </header>
       <div class="canvas-wrap plane"><canvas id="rlCv"></canvas></div>
       <div class="legend">
@@ -115,39 +112,34 @@
     <section class="card">
       <header>
         <h2>Hodograf Nyquista</h2>
-        <p>Obraz pełnego konturu Cauchy'ego, z domknięciem wokół biegunów w zerze.</p>
       </header>
       <div class="canvas-wrap plane"><canvas id="nqCv"></canvas></div>
       <div class="legend">
         <span><i style="background:var(--accent)"></i>ω: 0⁺ → ∞</span>
         <span><i style="background:var(--muted)"></i>ω: −∞ → 0⁻ (odbicie)</span>
-        <span><i style="background:var(--amber); border-top:2px dashed var(--amber); height:0"></i>łuk wcięcia, promień → ∞ (rysowany umownie przy ramce)</span>
-        <span><i class="sq" style="background:var(--good)"></i>obraz dużego łuku R → ∞</span>
-        <span><i style="background:var(--accent); opacity:.45; height:0; border-top:1px dashed var(--accent)"></i>fragment zwinięty na horyzont |G| → ∞</span>
+        <span><i style="background:var(--amber); border-top:2px dashed var(--amber); height:0"></i>łuk wcięcia, R → ∞</span>
+        <span><i class="sq" style="background:var(--good)"></i>obraz dużego łuku</span>
+        <span><i style="background:var(--accent); opacity:.45; height:0; border-top:1px dashed var(--accent)"></i>zwinięte na horyzont</span>
         <span><i class="sq" style="background:var(--bad)"></i>punkt (−1, j0)</span>
         <span>① … ⑤ numery etapów</span>
       </div>
-      <p class="note" id="nqNote"></p>
     </section>
   </div>
 
   <section class="card">
     <header>
       <h2>Hodograf krok po kroku — P(ω), Q(ω) i etapy konturu</h2>
-      <p>Ta sama kolejność co przy rysowaniu ręcznym: najpierw rozdzielenie G<sub>o</sub>(jω) na część rzeczywistą i urojoną przez pomnożenie przez sprzężenie mianownika, potem podział konturu Cauchy'ego na etapy. Wszystko liczone na wielomianach, więc ω<sub>180</sub>, ω<sub>c</sub> i asymptota wychodzą dokładnie, a nie z przeszukiwania siatki.</p>
     </header>
     <div class="pq-derive" id="pqDerive"></div>
     <dl class="readout" id="pqFacts"></dl>
     <div class="canvas-wrap" style="overflow-x:auto; padding:14px 16px">
       <table class="routh-table stage-table" id="stageTable"></table>
     </div>
-    <p class="note" id="pqNote"></p>
   </section>
 
   <section class="card">
     <header>
       <h2>Kryterium Nyquista: Z = N + P</h2>
-      <p>Skąd bierze się ten wzór: zasada argumentu Cauchy'ego zastosowana do F(s) = 1 + G<sub>o</sub>(s) na konturze obiegającym całą prawą półpłaszczyznę. Zera F to bieguny układu zamkniętego, bieguny F to bieguny układu otwartego — stąd Z − P = N, czyli Z = N + P.</p>
     </header>
     <div class="canvas-wrap" style="overflow-x:auto; padding:4px 16px 16px" id="critBox"></div>
   </section>
@@ -155,7 +147,6 @@
   <section class="card">
     <header>
       <h2>Charakterystyki Bodego</h2>
-      <p>Moduł w dB i faza w stopniach, oś ω logarytmiczna. Linie pionowe: ω<sub>c</sub> (przecięcie 0 dB) i ω<sub>180</sub> (przecięcie −180°).</p>
       <label class="chk" style="margin-left:auto"><input type="checkbox" id="bodeParts" checked> pokaż składniki</label>
     </header>
     <div class="canvas-wrap bode"><canvas id="bdCv"></canvas></div>
@@ -164,14 +155,14 @@
       <span><i style="background:var(--amber)"></i>φ(ω)</span>
       <span><i style="background:var(--bad)"></i>linie odniesienia 0 dB i −180°</span>
       <span>▲ pulsacje łamania (<span style="color:var(--muted)">biegun</span> / <span style="color:var(--good)">zero</span>)</span>
-      <span><i style="background:var(--sc1); height:0; border-top:2px dashed var(--sc1)"></i>składniki (linia przerywana, numer przy prawej krawędzi)</span>
+      <span><i style="background:var(--sc1); height:0; border-top:2px dashed var(--sc1)"></i>składniki (numer przy prawej krawędzi)</span>
     </div>
     <div class="bode-terms" id="bodeTerms"></div>
     <p class="note" id="bdNote"></p>
   </section>
 
   <footer>
-    Kryterium: <span class="mono">Z = N + P</span>, gdzie N liczy okrążenia punktu (−1, j0) zgodnie z ruchem wskazówek zegara, P to bieguny układu otwartego z Re &gt; 0 (biegun w zerze wykluczony przez wcięcie konturu), Z to bieguny układu zamkniętego w prawej półpłaszczyźnie. Zapasy PM i GM mają sens tylko wtedy, gdy Z = 0. Opóźnienie wchodzi ściśle do Bodego i Nyquista; na liniach pierwiastkowych jest przybliżone aproksymacją Padégo pierwszego rzędu.
+    <span class="mono">Z = N + P</span> · zapasy mają sens przy Z = 0 · opóźnienie ściśle w Bodem i Nyquiście, na liniach pierwiastkowych przez Padégo.
   </footer>
 
 </section>
@@ -181,7 +172,7 @@
   <section class="card">
     <header>
       <h2>Kryterium Routha–Hurwitza</h2>
-      <p>Działa wyłącznie na wielomianowym równaniu charakterystycznym D(s) + K·N(s) = 0 — tej samej transmitancji co karta Analiza, sterowanej tym samym panelem po lewej.</p>
+      <p>Równanie charakterystyczne D(s) + K·N(s) = 0 tej samej transmitancji co karta Analiza.</p>
     </header>
     <div id="routhTdWarn" class="routh-warn" hidden>
       Uwaga: T<sub>d</sub> &gt; 0. Równanie charakterystyczne z opóźnieniem nie jest wielomianem — poniższa analiza używa tego samego przybliżenia Padégo pierwszego rzędu co linie pierwiastkowe i dlatego nie jest ścisła. Kryterium Nyquista w karcie Analiza pozostaje dokładne.
@@ -191,7 +182,7 @@
   <section class="card">
     <header>
       <h2>Warunek konieczny</h2>
-      <p>Wszystkie współczynniki równania charakterystycznego muszą istnieć i mieć ten sam znak. To warunek łatwy do sprawdzenia, ale sam w sobie <b>nie dowodzi stabilności</b> — tylko jej brak.</p>
+      <p>Wszystkie współczynniki muszą istnieć i mieć ten sam znak. Warunek konieczny — <b>nie dowodzi stabilności</b>, tylko jej brak.</p>
     </header>
     <div class="tf" style="grid-template-columns:1fr">
       <div class="frac" id="routhPolyBox" style="font-size:14px"></div>
@@ -203,7 +194,7 @@
   <section class="card">
     <header>
       <h2 id="routhTableTitle">Tablica Routha dla bieżącego K</h2>
-      <p id="routhTableSub">Liczba zmian znaku w pierwszej kolumnie równa się liczbie pierwiastków w prawej półpłaszczyźnie.</p>
+      <p id="routhTableSub">Zmiany znaku w pierwszej kolumnie = pierwiastki w prawej półpłaszczyźnie.</p>
     </header>
     <div id="routhTableRole"></div>
     <div class="canvas-wrap" style="overflow-x:auto; padding:14px 16px" id="routhTableBox"></div>
@@ -214,12 +205,11 @@
   <section class="card">
     <header>
       <h2>Przedziały K</h2>
-      <p>Inne pytanie niż powyżej: nie „czy ten K działa”, tylko „czy istnieje jakikolwiek K, który działa”. K traktowane jest jako wolny parametr rzeczywisty, niezależnie od przełącznika K &lt; 0 w panelu.</p>
+      <p>K jako wolny parametr rzeczywisty, niezależnie od przełącznika K &lt; 0 w panelu.</p>
     </header>
     <div id="routhRangeRole"></div>
     <div class="readout" id="routhRangeSummary" style="grid-template-columns:1fr 1fr"></div>
     <div class="canvas-wrap" style="padding:14px 16px" id="routhIntervals"></div>
-    <p class="note">Każda granica przedziału to wartość K, przy której jakieś miejsce zerowe równania charakterystycznego przechodzi przez oś urojąą — czyli dokładnie to, co wcześniej znajdował wielomian pomocniczy przy wierszu zerowym w tabeli Routha.</p>
   </section>
 
 </section>
@@ -232,7 +222,7 @@
   <section class="card">
     <header>
       <h2>Schemat blokowy</h2>
-      <p>Przeciągaj bloki wprost na rysunku, żeby zmienić ich kolejność — iloczyn szeregowy jest przemienny, więc G(s) się nie zmieni. Kliknij blok, żeby zmienić typ albo wartość.</p>
+      <p>Przeciągaj bloki, żeby zmienić kolejność. Kliknij blok, żeby zmienić typ albo wartość.</p>
     </header>
 
     <div class="figbar">
@@ -269,7 +259,6 @@
   <section class="card">
     <header>
       <h2>Wypadkowa transmitancja</h2>
-      <p>Przeliczana na bieżąco z powyższych trzech ścieżek.</p>
     </header>
     <div class="tf" style="grid-template-columns:minmax(0,1fr) auto">
       <div class="frac" id="bdTfBox"></div>
@@ -285,7 +274,7 @@
   <section class="card">
     <header>
       <h2>Obwód RLC albo układ mechaniczny</h2>
-      <p>Wybierz topologię i wartości parametrów — transmitancja i model stanowy poniżej przeliczają się od razu z równań obiektu. Obwody elektryczne i układy masa–sprężyna–tłumik są opisane tymi samymi równaniami (analogia siła–napięcie: m ↔ L, b ↔ R, 1/k ↔ C), więc dają identyczne transmitancje — różnią się tylko symbolami na rysunku.</p>
+      <p>Obwody elektryczne i układy masa–sprężyna–tłumik. Analogia siła–napięcie: m ↔ L, b ↔ R, 1/k ↔ C.</p>
     </header>
     <div class="row" style="padding:12px 16px 0">
       <label for="rlcTopo">Topologia</label>
@@ -299,7 +288,7 @@
   <section class="card">
     <header>
       <h2>Schemat symulacyjny z transmitancji</h2>
-      <p>Ten sam układ narysowany łańcuchem integratorów: współczynniki mianownika wracają jako sprzężenia do sumatora wejściowego, współczynniki licznika idą w przód do sumatora wyjściowego. To jest postać sterowalna z panelu poniżej, tylko rysunkiem.</p>
+      <p>Postać sterowalna narysowana łańcuchem integratorów.</p>
     </header>
     <div class="figwrap" id="simDiagram"></div>
     <p class="note" id="simNote"></p>
@@ -308,7 +297,7 @@
   <section class="card">
     <header>
       <h2>Model stanowy ↔ transmitancja</h2>
-      <p>Edytuj którykolwiek panel — drugi przelicza się automatycznie. TF→SS używa postaci sterowalnej, SS→TF — algorytmu Faddeeva–LeVerriera.</p>
+      <p>Edytuj którykolwiek panel — drugi przelicza się sam.</p>
     </header>
     <div class="row" style="padding:12px 16px 0">
       <label for="ssOrder">Rząd układu n</label>

@@ -140,7 +140,7 @@ export function refreshBlock(){
   const trimmed=G.den.slice(); while(trimmed.length>1 && Math.abs(trimmed[0])<1e-12) trimmed.shift();
   $('bdNoteBox').textContent = trimmed.length<=1
     ? 'Mianownik sta\u0142y \u2014 dodaj blok ca\u0142kuj\u0105cy albo inercj\u0119, \u017ceby uk\u0142ad mia\u0142 bieguny.'
-    : 'Rz\u0105d mianownika: '+(trimmed.length-1)+'. \u201eZastosuj do analizy\u201d przenosi bieguny, zera i K do kart Analiza oraz Routh\u2013Hurwitz.';
+    : 'Rz\u0105d mianownika: '+(trimmed.length-1)+'.';
 }
 
 

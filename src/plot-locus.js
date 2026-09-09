@@ -79,9 +79,9 @@ export function drawRootLocus(A){
 
   const worst=cur.length? Math.max(...cur.map(q=>q.re)) : NaN;
   $('rlNote').innerHTML = cur.length
-    ? `Przy K = ${fmt(K())} bieguny zamknięte: ${cur.map(q=>fmt(q.re,3)+(Math.abs(q.im)>1e-6?(q.im>0?' + j':' − j')+fmt(Math.abs(q.im),3):'')).join(' ; ')}. `
-      + `Największa część rzeczywista: ${fmt(worst,3)} — ${worst<0?'wszystkie w lewej półpłaszczyźnie':'co najmniej jeden w prawej półpłaszczyźnie'}.`
-    : 'Brak mianownika — dodaj co najmniej jeden biegun albo astatyzm.';
+    ? `Bieguny zamknięte przy K = ${fmt(K())}: ${cur.map(q=>fmt(q.re,3)+(Math.abs(q.im)>1e-6?(q.im>0?' + j':' − j')+fmt(Math.abs(q.im),3):'')).join(' ; ')}`
+      + `  ·  max Re = ${fmt(worst,3)}`
+    : 'Brak mianownika — dodaj biegun albo astatyzm.';
 }
 
 /* --- Nyquist --- */

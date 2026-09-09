@@ -72,7 +72,7 @@ function renderSSPreview(){
   fitFig($('simDiagram'));
   $('simNote').textContent = sim.svg? sim.note : '';
   const trimmed=SSM.tf.den.slice(); while(trimmed.length>1 && Math.abs(trimmed[0])<1e-12) trimmed.shift();
-  $('ssNote').textContent = 'Rz\u0105d n = '+(trimmed.length-1)+'. Model stanowy (postać sterowalna) i transmitancja s\u0105 teraz sp\u00f3jne.';
+  $('ssNote').textContent = 'Rz\u0105d n = '+(trimmed.length-1)+'.';
 }
 
 export function setOrderButtons(n){
@@ -116,11 +116,8 @@ export function renderRlcDiagram(){
   const mech = t.kind==='mech';
   $('rlcDiagram').innerHTML = mech? mechSchematic(t, RLC_DEF) : rlcSchematic(t, RLC_DEF);
   fitFig($('rlcDiagram'));
-  $('rlcNote').innerHTML = (t.law? esc(t.law)+'. ' : '')
-    + 'St\u0105d <b>'+esc(t.eq)+'</b>. '
-    + 'Przerywana ramka pokazuje, na czym mierzone jest wyj\u015bcie y \u2014 st\u0105d bior\u0105 si\u0119 macierze C i D poni\u017cej.'
-    + (mech? ' <br>Analogia si\u0142a\u2013napi\u0119cie: <b>m \u2194 L</b>, <b>b \u2194 R</b>, <b>1/k \u2194 C</b>, si\u0142a \u2194 napi\u0119cie, pr\u0119dko\u015b\u0107 \u2194 pr\u0105d. '
-      + 'Ten sam uk\u0142ad r\u00f3wna\u0144 co w obwodzie \u2014 wi\u0119c i ta sama transmitancja, te same bieguny i ten sam hodograf.' : '');
+  $('rlcNote').innerHTML = '<b>'+esc(t.eq)+'</b>'
+    + (t.law? '  \u00b7  '+esc(t.law) : '');
 }
 
 export function setRlcTopology(key){ RLC_SEL.key=key; renderRlcParams(); renderRlcDiagram(); applyRlc(); }

@@ -177,15 +177,10 @@ function frequencyAxis(ctx, geo, rp) {
 /** Whether the simplified Bode criterion may be used at all, in words. */
 function criterionNote(A) {
   const minPhase = A.zeros.every(z => z.re <= 1e-9) && S.Td === 0;
-  if (A.P === 0 && minPhase) {
-    return 'Układ otwarty stabilny (P = 0) i minimalnofazowy — uproszczone kryterium Bodego wolno stosować: '
-      + (A.pm === null
-        ? 'charakterystyka nie przecina 0 dB, więc ω<sub>c</sub> nie istnieje.'
-        : `PM = ${fmt(A.pm)}° ${A.pm > 0 ? '> 0 ⇒ układ zamknięty stabilny.' : '≤ 0 ⇒ układ zamknięty niestabilny.'}`);
-  }
+  if (A.P === 0 && minPhase) return '';        // regula kciuka dziala, nie ma o czym ostrzegac
   return `<b>Uwaga:</b> P = ${A.P}`
-    + (minPhase ? '' : ' i układ nie jest minimalnofazowy (zero w prawej półpłaszczyźnie lub opóźnienie)')
-    + ` — uproszczone kryterium Bodego <b>nie obowiązuje</b>. Wiążąca jest liczba okrążeń z hodografu: Z = ${A.Z}.`;
+    + (minPhase ? '' : ', układ nie jest minimalnofazowy')
+    + ` — uproszczone kryterium Bodego <b>nie obowiązuje</b>. Wiążące jest Z = ${A.Z}.`;
 }
 
 export function drawBode(A) {
@@ -261,9 +256,5 @@ function renderBodeTerms(parts) {
   host.innerHTML =
       `<div class="bterm-row"><span class="lhs">20·log₁₀|G(jω)| [dB] =</span>${dbTerms}</div>`
     + `<div class="bterm-row"><span class="lhs">arg G(jω) [stopnie] =</span>${argTerms}</div>`
-    + `<p class="bterm-legend">Każdy składnik jest narysowany osobno linią przerywaną w swoim kolorze — tak, `
-    + `jakby występował sam. Numer w kółku przy prawej krawędzi wykresu wskazuje, która krzywa `
-    + `odpowiada któremu wyrażeniu. W trybie wyjaśnień każdy składnik jest klikalny. Linia ciągła to suma wszystkich składników, czyli właściwa `
-    + `charakterystyka. Czynniki są sprowadzone do postaci (1 + τjω), a stałe wyciągnięte przed `
-    + `nawias zebrane są w składniku k.</p>`;
+;
 }
