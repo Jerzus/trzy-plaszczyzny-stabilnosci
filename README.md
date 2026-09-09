@@ -114,6 +114,7 @@ przeglądarki (`selftest: OK`).
 | `10/[(s+1)(s+2)]` | ω_c = 2,759 · PM = 55,9° · GM = ∞ · Z = 0 |
 | `10/[s(s+1)(s+2)]` | ω_180 = √2 · Re = −1,67 · ω_c = 1,80 · PM = −13° · Z = 2 |
 | `−1/[s(s−1)]` | P = 1 · Z = 1 (uproszczone kryterium Bodego tu zawodzi) |
+| `100(s+10)/[s(s+100)(s+1000)]` | ω_c = 0,01 · PM = 90° — przecięcie dwie dekady pod najniższym załomem |
 
 Karta Routha–Hurwitza jest niezależną kontrolą tych samych układów: dla
 `10/[s(s+1)(s+2)]` tablica daje pierwszą kolumnę `1; 3; −4/3; 10` (dwie zmiany

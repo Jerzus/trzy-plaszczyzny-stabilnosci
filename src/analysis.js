@@ -15,14 +15,27 @@ function bisect(f, a, b) {
   return Math.sqrt(a * b);
 }
 
-/** A decade range wide enough to show every corner frequency and the delay. */
-function sweepRange(P, Z) {
+/** A decade range wide enough to show every corner frequency and the delay.
+
+    Corner frequencies alone are not enough: the gain decides where |G| = 1,
+    and with a small velocity constant that crossing can sit decades below the
+    lowest corner -- G = 100(s+10)/[s(s+100)(s+1000)] crosses 0 dB at
+    0,01 rad/s, two decades under its first corner. So widen the band to hold
+    the exact crossings the polynomial form already knows about. */
+function sweepRange(P, Z, plan) {
   const mags = [...P, ...Z].map(cabs).filter(v => v > 1e-9);
   let lo = mags.length ? Math.min(...mags) / 100 : 0.01;
   let hi = mags.length ? Math.max(...mags) * 100 : 100;
   if (S.Td > 0) hi = Math.max(hi, 60 / S.Td);
   lo = Math.max(1e-4, Math.min(lo, 1));
   hi = Math.min(1e5, Math.max(hi, 10 * lo, 100));
+
+  const key = [...plan.unitAll.map(q => q.w), ...plan.reCrossAll.map(q => q.w)]
+    .filter(v => v > 1e-12 && isFinite(v));
+  if (key.length) {
+    lo = Math.max(1e-9, Math.min(lo, Math.min(...key) / 10));
+    hi = Math.min(1e9, Math.max(hi, Math.max(...key) * 10));
+  }
   return { lo, hi };
 }
 
@@ -42,8 +55,17 @@ function sweep(lo, hi, M = 900) {
   return { w, mag, ph };
 }
 
-/** First crossing of |G| = 1, and the phase margin read there. */
-function gainCrossover({ w, mag, ph }) {
+/** First crossing of |G| = 1, and the phase margin read there.
+
+    Taken from the exact positive roots of |L(jw)|^2 = |M(jw)|^2 whenever the
+    polynomial form yields them -- the modulus does not depend on the transport
+    delay, so those roots stay exact even for Td > 0. The sweep search below is
+    the fallback for cases the polynomial path cannot express. */
+function gainCrossover({ w, mag, ph }, plan) {
+  if (plan.unitAll.length) {
+    const q = plan.unitAll[0];
+    return { wc: q.w, pm: q.pm };
+  }
   for (let i = 1; i < w.length; i++) {
     if ((mag[i - 1] - 1) * (mag[i] - 1) >= 0) continue;
     const wc = bisect(x => resp(x).mag - 1, w[i - 1], w[i]);
@@ -211,14 +233,14 @@ function locusGeometry(P, Z) {
 
 export function analyse() {
   const P = expand('p'), Z = expand('z');
-  const { lo, hi } = sweepRange(P, Z);
+  const plan = nyquistPlan();
+  const { lo, hi } = sweepRange(P, Z, plan);
   const curve = sweep(lo, hi);
 
-  const { wc, pm } = gainCrossover(curve);
+  const { wc, pm } = gainCrossover(curve, plan);
   let { w180, reCross, gm } = phaseCrossover(curve);
 
   const kp = S.nu === 0 ? Gof(C(1e-9, 0)).re : Infinity;
-  const plan = nyquistPlan();
 
   /* Non-minimum-phase systems can start ON the negative real axis: the phase
      is already 180 degrees at omega = 0, so the phase crossover sits at the

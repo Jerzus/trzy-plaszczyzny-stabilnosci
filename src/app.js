@@ -296,6 +296,13 @@ setTab('analiza');
   ok&=near(A.wc,1.80,0.02,'wc astat');
   ok&=near(A.pm,-13,0.5,'PM astat');
   ok&=near(A.Z,2,0.1,'Z astat');
+  // 100(s+10)/[s(s+100)(s+1000)] : w_c = 0,01 rad/s, czyli dwie dekady PONIZEJ
+  // najnizszej pulsacji zalomu -- pasmo przemiatania musi po nie siegnac
+  Object.assign(S,{Kmag:100,Kneg:false,nu:1,Td:0,items:[{kind:'z',re:-10,im:0,on:true},
+    {kind:'p',re:-100,im:0,on:true},{kind:'p',re:-1000,im:0,on:true}]});
+  A=analyse();
+  ok&=near(A.wc,0.01,1e-4,'wc pod pasmem zalomow');
+  ok&=near(A.pm,90.05,0.2,'PM pod pasmem zalomow');
   // 1/[s(1-s)] = -1/[s(s-1)] : P = 1, Z = 1
   Object.assign(S,{Kmag:1,Kneg:true,nu:1,Td:0,items:[{kind:'p',re:1,im:0,on:true}]});
   A=analyse();
