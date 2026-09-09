@@ -57,6 +57,28 @@ const kFromSlider=v=>Math.pow(10,v/100);
 const sliderFromK=k=>Math.round(100*Math.log10(k));
 $('kSlider').oninput=e=>{S.Kmag=+kFromSlider(+e.target.value).toPrecision(3); refresh();};
 $('kNeg').onchange=e=>{S.Kneg=e.target.checked; refresh();};
+
+/* K wpisywane z klawiatury. Pole przyjmuje przecinek i minus w obu postaciach
+   (- oraz U+2212, którym aplikacja formatuje liczby), a znak przestawia ten sam
+   przełącznik K < 0, żeby oba wejścia nigdy nie mówiły czegoś innego. Wartość
+   jest przycinana do zakresu suwaka, więc suwak i pole zawsze się zgadzają. */
+const K_MIN=kFromSlider(+$('kSlider').min), K_MAX=kFromSlider(+$('kSlider').max);
+function applyTypedK(txt){
+  const v=parseFloat(String(txt).replace(',','.').replace(/[\u2212\u2013\u2014]/g,'-'));
+  if(!isFinite(v) || v===0) return false;
+  S.Kmag=+Math.min(K_MAX, Math.max(K_MIN, Math.abs(v))).toPrecision(4);
+  S.Kneg=v<0;
+  $('kNeg').checked=S.Kneg;
+  $('kSlider').value=sliderFromK(S.Kmag);
+  return true;
+}
+$('kIn').addEventListener('change',e=>{
+  const ok=applyTypedK(e.target.value);
+  e.target.classList.toggle('bad',!ok);
+  if(ok) refresh(); else e.target.value=fmt(K());
+});
+$('kIn').addEventListener('input',()=>$('kIn').classList.remove('bad'));
+$('kIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } });
 $('tdSlider').oninput=e=>{S.Td=+e.target.value/100; refresh();};
 $('zoom').oninput=e=>{S.zoom=Math.pow(10,+e.target.value/100); refresh();};
 $('nuSeg').onclick=e=>{
@@ -91,6 +113,7 @@ $('presets').onclick=e=>{
 function syncControls(){
   $('kSlider').value=sliderFromK(S.Kmag);
   $('kNeg').checked=S.Kneg;
+  $('kIn').value=fmt(K());
   $('tdSlider').value=Math.round(S.Td*100);
   [...$('nuSeg').children].forEach(x=>x.setAttribute('aria-pressed', +x.dataset.nu===S.nu));
 }
@@ -98,7 +121,7 @@ function syncControls(){
 let LAST=null;
 
 function refresh(){
-  $('kOut').textContent=fmt(K());
+  if(document.activeElement!==$('kIn')) $('kIn').value=fmt(K());   // nie kasuj tego, co user wpisuje
   $('nuOut').textContent=S.nu;
   $('tdOut').textContent=fmt(S.Td)+' s';
   $('zoomOut').textContent=fmt(S.zoom,2)+'×';
