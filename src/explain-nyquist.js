@@ -1,10 +1,36 @@
 import { C, D2, cabs, carg } from './complex.js';
-import { fmt, fx } from './format.js';
+import { fmt, fx, polyToHtml } from './format.js';
 import { K, S } from './model.js';
 
 /* Hodograf Nyquista. One entry per clickable quantity: it receives the analysis
    result A, whatever the hotspot carried in d, and ctx with the counts
    shared by several entries. */
+
+const ep = k => k === 1 ? '\u03b5' : '\u03b5^' + k;
+
+/* Obie polowki wciecia roznia sie tylko zakresem kata theta, wiec opis
+   powstaje z jednego szablonu. */
+function arcEntry(half) {
+  const up = half === 'górna';
+  return (A, d, ctx) => {
+    const p = A.plan;
+    return {kind:'Kontur', title:(up? 'Górny' : 'Dolny')+' łuk wcięcia wokół s = 0',
+      what:'Kontur Cauchy’ego nie może przechodzić przez biegun ani przez miejsce zerowe funkcji, więc punkt s = 0 omijamy półokręgiem s = ε·e^(jθ) przy ε → 0 — przechodzimy nieskończenie blisko, ale po stronie prawej półpłaszczyzny, dzięki czemu biegun w zerze zostaje NA ZEWNĄTRZ konturu i nie wlicza się do P. '
+        + (up? 'Ta połówka biegnie od s = +ε na osi rzeczywistej do s = +jε i jest pierwszym etapem rysowania.'
+             : 'Ta połówka biegnie od s = −jε z powrotem do s = +ε i zamyka cały kontur.'),
+      formula:['w otoczeniu zera:  Gₒ(s) ≈ c · s^(−d),  d = ν − μ',
+               'Gₒ(ε·e^(jθ)) = c·ε^(−d)·e^(−jdθ)',
+               up? 'θ: 0° → +90°  ⇒  Δarg = −d·90°' : 'θ: −90° → 0°  ⇒  Δarg = −d·90°'],
+      steps:[['ν, μ, d', p.nu+', '+p.mu+', '+fmt(p.d)],
+             ['c', fx(p.c)],
+             ['promień obrazu', p.d>0? '|c|/'+ep(p.d)+' → ∞' : (p.d<0? '|c|·'+ep(-p.d)+' → 0' : fx(Math.abs(p.c)))],
+             ['kąt tej połówki', fmt(-p.d*90,4)+'°'],
+             ['kąt całego wcięcia', fmt(-p.d*180,4)+'°'],
+             ['strona ominięcia', 'prawa półpłaszczyzna ⇒ biegun wykluczony z wnętrza konturu']],
+      result:'łuk o promieniu '+(p.d>0? '→ ∞' : (p.d<0? '→ 0' : fx(Math.abs(p.c))))+', '+fmt(-p.d*90,4)+'°',
+      note:'Na wykresie łuk o promieniu nieskończonym rysowany jest umownie tuż przy ramce (przerywana linia bursztynowa) — z zachowaniem dokładnego kąta i zwrotu. Bez niego krzywa byłaby otwarta i okrążeń nie dałoby się policzyć: to właśnie ten łuk daje N = 2 w klasycznym 10/[s(s+1)(s+2)].'};
+  };
+}
 
 export const ENTRIES = {
   'nq-crit'(A, d, ctx) {
@@ -39,19 +65,9 @@ export const ENTRIES = {
       result:'odbicie lustrzane ga\u0142\u0119zi g\u0142\u00f3wnej',
       note:'Ta ga\u0142\u0105\u017a jest niezb\u0119dna do policzenia okr\u0105\u017ce\u0144 \u2014 kryterium Nyquista wymaga obrazu PE\u0141NEGO konturu zamkni\u0119tego, a nie samej po\u0142owy dla \u03c9 > 0.'};
   },
-  'nq-arc'(A, d, ctx) {
-  return {kind:'Hodograf', title:'\u0141uk wci\u0119cia wok\u00f3\u0142 bieguna w zerze',
-      what:'Kontur Cauchy\u2019ego nie mo\u017ce przechodzi\u0107 przez biegun, wi\u0119c biegun w s = 0 omijamy ma\u0142ym p\u00f3\u0142okr\u0119giem s = \u03b5e^(j\u03b8), \u03b5 \u2192 0, \u03b8 od \u221290\u00b0 do +90\u00b0. Obrazem tego p\u00f3\u0142okr\u0119gu jest \u0142uk o promieniu d\u0105\u017c\u0105cym do niesko\u0144czono\u015bci, kt\u00f3ry domyka hodograf \u2014 i to w\u0142a\u015bnie on wnosi okr\u0105\u017cenia.',
-      formula:['w otoczeniu zera:  G\u2092(s) \u2248 c / s^\u03bd',
-               'G\u2092(\u03b5e^(j\u03b8)) = (c/\u03b5^\u03bd)\u00b7e^(\u2212j\u03bd\u03b8)',
-               '\u03b8: \u221290\u00b0 \u2192 +90\u00b0  \u21d2  arg maleje o \u03bd\u00b7180\u00b0 (zgodnie ze wskaz\u00f3wkami)'],
-      steps:[['\u03bd', String(S.nu)],
-             ['k\u0105t zataczany przez \u0142uk', (S.nu*180)+'\u00b0 CW'],
-             ['promie\u0144','\u2192 \u221e'],
-             ['wybrana strona omini\u0119cia','od strony prawej p\u00f3\u0142p\u0142aszczyzny \u21d2 biegun WYKLUCZONY z wn\u0119trza konturu']],
-      result:'\u0142uk o promieniu \u221e, '+(S.nu*180)+'\u00b0 zgodnie z ruchem wskaz\u00f3wek',
-      note:'To dlatego biegun w zerze nie wlicza si\u0119 do P. Jednocze\u015bnie ten \u0142uk potrafi samodzielnie wygenerowa\u0107 okr\u0105\u017cenia punktu \u22121 \u2014 klasyczny przypadek 10/[s(s+1)(s+2)], gdzie N = 2 bierze si\u0119 w\u0142a\u015bnie z p\u0119tli domykanej przez \u0142uk.'};
-  },
+  'nq-arc-up': arcEntry('górna'),
+  'nq-arc-dn': arcEntry('dolna'),
+  'nq-arc': arcEntry('górna'),
   'nq-unit'(A, d, ctx) {
   return {kind:'Linia odniesienia', title:'Okr\u0105g jednostkowy',
       what:'Zbi\u00f3r punkt\u00f3w o module 1. Miejsce, w kt\u00f3rym hodograf go przecina, wyznacza pulsacj\u0119 \u03c9_c. K\u0105t mi\u0119dzy ujemn\u0105 p\u00f3\u0142osi\u0105 rzeczywist\u0105 a promieniem poprowadzonym do tego przeci\u0119cia jest zapasem fazy.',
@@ -71,5 +87,148 @@ export const ENTRIES = {
              ['PM = 180\u00b0 + arg', fmt(A.pm,4)+'\u00b0']],
       result:'( '+fx(d.re)+' , j'+fx(d.im)+' )',
       note:'Im bli\u017cej ten punkt le\u017cy punktu (\u22121, j0), tym mniejszy zapas fazy i tym bardziej oscylacyjna odpowied\u017a uk\u0142adu zamkni\u0119tego.'};
+  },
+
+  /* ---- rozbicie na P(w) i Q(w) ---- */
+  'nq-pq'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Rozkład G(jω)', title:'P(ω) i Q(ω) — część rzeczywista i urojona',
+      what:'Pierwszy krok ręcznego rysowania hodografu. Po podstawieniu s = jω mianownik jest liczbą zespoloną, więc nie widać wprost, gdzie leży punkt krzywej. Mnożymy licznik i mianownik przez sprzężenie mianownika: mianownik staje się rzeczywisty (|M|² = C² + D²), a licznik rozpada się na dwie części rzeczywiste — P i Q.',
+      formula:['Gₒ(jω) = (A + jB) / (C + jD)',
+               '(A + jB)(C − jD) / [(C + jD)(C − jD)] = (A + jB)(C − jD) / (C² + D²)',
+               'P(ω) = (A·C + B·D) / (C² + D²)',
+               'Q(ω) = (B·C − A·D) / (C² + D²)'],
+      steps:[['A(ω)', polyToHtml(p.A,'','ω')], ['B(ω)', polyToHtml(p.B,'','ω')],
+             ['C(ω)', polyToHtml(p.Cc,'','ω')], ['D(ω)', polyToHtml(p.Dd,'','ω')],
+             ['licznik P', polyToHtml(p.Pn,'','ω')], ['licznik Q', polyToHtml(p.Qn,'','ω')],
+             ['mianownik C² + D²', polyToHtml(p.den,'','ω')]],
+      result:'Gₒ(jω) = P(ω) + jQ(ω)',
+      note:'A i C to części parzyste (potęgi ω⁰, ω², …), B i D nieparzyste — bo jᵏ cykluje 1, j, −1, −j. Stąd P jest funkcją parzystą, a Q nieparzystą, co jest formalnym powodem, dla którego gałąź dla ω < 0 jest lustrzanym odbiciem gałęzi dla ω > 0.'};
+  },
+  'nq-order'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Kontur', title:'ν, μ i rząd zachowania w s = 0',
+      what:'Liczba etapów rysowania zależy tylko od tego, czy Gₒ(s) ma miejsce zerowe w punkcie s = 0 — w mianowniku (biegun, ν) albo w liczniku (zero, μ). Jeśli ma, kontur Cauchy’ego nie może przez ten punkt przejść i trzeba go ominąć wcięciem, co dokłada dwa etapy.',
+      formula:['Gₒ(s) ≈ c · s^(−d) w otoczeniu zera,  d = ν − μ'],
+      steps:[['ν — bieguny w s = 0', String(p.nu)], ['μ — zera w s = 0', String(p.mu)],
+             ['d = ν − μ', fmt(p.d)],
+             ['wcięcie potrzebne?', (p.nu>0||p.mu>0)? 'tak' : 'nie'],
+             ['liczba etapów', String(p.nStages)]],
+      result: p.nStages+' etapy/etapów',
+      note:'Uwaga na przypadek d = 0 przy ν = μ > 0: wcięcie nadal jest konieczne (biegun leży na konturze), ale obraz łuku nie ucieka do nieskończoności — zwija się do punktu c.'};
+  },
+  'nq-stages'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Kontur', title:'Etapy obchodzenia konturu Cauchy’ego',
+      what:'Kontur zamknięty w płaszczyźnie s, obiegany zgodnie z ruchem wskazówek zegara, obejmujący całą prawą półpłaszczyznę. Zaczynamy od s = +ε na osi rzeczywistej i wracamy do tego samego punktu. Każdy odcinek konturu daje jeden fragment hodografu.',
+      formula: p.stages.map(st => st.no+'. '+st.name+':  '+st.s+',  '+st.par),
+      steps: p.stages.map(st => [st.no+'. '+st.name, st.img]),
+      result: p.nStages===5? 'pięć etapów (wcięcie wokół s = 0)' : 'trzy etapy (bez wcięcia)',
+      note:'Kryterium Nyquista wymaga obrazu PEŁNEGO konturu zamkniętego. Pominięcie łuku domykającego jest najczęstszym błędem — bez niego krzywa jest otwarta i okrążeń punktu (−1, j0) po prostu nie da się policzyć.'};
+  },
+  'nq-c'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Kontur', title:'Współczynnik c łuku wcięcia',
+      what:'Stała, która opisuje zachowanie transmitancji tuż przy s = 0. Bierze się ją z najniższych potęg licznika i mianownika: pozostałe czynniki przy s → 0 dążą do swoich wartości w zerze.',
+      formula:['c = lim(s→0) s^d · Gₒ(s)',
+               'Gₒ(ε·e^(jθ)) ≈ c · ε^(−d) · e^(−jdθ)'],
+      steps:[['d', fmt(p.d)], ['c', fx(p.c)],
+             ['znak c', p.c>=0? 'dodatni → łuk startuje na dodatniej półosi Re' : 'ujemny → łuk startuje na ujemnej półosi Re'],
+             ['promień obrazu łuku', p.d>0? '|c|/'+ep(p.d)+' → ∞' : (p.d<0? '|c|·'+ep(-p.d)+' → 0' : '|c| = '+fx(Math.abs(p.c)))]],
+      result:'c = '+fx(p.c),
+      note:'Dla ν = 1 współczynnik c jest po prostu wzmocnieniem prędkościowym K_v = lim s·Gₒ(s), tym samym, które w Bodem wyznacza położenie asymptoty niskoczęstotliwościowej.'};
+  },
+  'nq-arcang'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Kontur', title:'Kąt zataczany przez łuk wcięcia',
+      what:'Wcięcie przebiega po półokręgu s = ε·e^(jθ) od θ = −90° do +90°, czyli po stronie prawej półpłaszczyzny — biegun w zerze zostaje NA ZEWNĄTRZ konturu i dlatego nie wlicza się do P. Obraz tego półokręgu obraca się d razy szybciej i w przeciwną stronę.',
+      formula:['arg Gₒ(ε·e^(jθ)) = arg c − d·θ',
+               'θ: −90° → +90°  (łącznie 180°)',
+               'Δarg = −d·180°'],
+      steps:[['d', fmt(p.d)], ['kąt łuku', fmt(-p.d*180,4)+'°'],
+             ['zwrot', p.d>0? 'zgodnie z ruchem wskazówek' : (p.d<0? 'przeciwnie do ruchu wskazówek' : 'brak obrotu')],
+             ['górna połówka (θ: 0 → +90°)', fmt(-p.d*90,4)+'°'],
+             ['dolna połówka (θ: −90° → 0)', fmt(-p.d*90,4)+'°']],
+      result:'łuk zatacza '+fmt(-p.d*180,4)+'°',
+      note:'To ten łuk potrafi samodzielnie wygenerować okrążenia punktu −1 — klasyczny przypadek 10/[s(s+1)(s+2)], w którym N = 2 bierze się właśnie z pętli domykanej przez łuk.'};
+  },
+  'nq-asym'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Linia odniesienia', title:'Asymptota pionowa Re = lim P(ω)',
+      what:'Przy ν ≥ 1 moduł Gₒ rośnie do nieskończoności, gdy ω → 0, ale część rzeczywista dąży do wartości skończonej. Hodograf ucieka więc równolegle do osi urojonej wzdłuż pionowej prostej — to pierwsza rzecz, którą rysuje się na kartce, zanim postawi się jakikolwiek punkt krzywej.',
+      formula:['Re = lim(ω→0) P(ω) = lim(ω→0) licznik P(ω) / (C² + D²)',
+               'iloraz najniższych potęg ω obu wielomianów',
+               'dla ν = 1:  Re = −K_v · Σ Tᵢ'],
+      steps:[['licznik P(ω)', polyToHtml(p.Pn,'','ω')],
+             ['mianownik', polyToHtml(p.den,'','ω')],
+             ['granica przy ω → 0', fmt(p.asym,5)],
+             ['granica Q(ω)', p.qLim===Infinity? '+∞' : (p.qLim===-Infinity? '−∞' : fmt(p.qLim,4))]],
+      result: isFinite(p.asym)? 'asymptota Re = '+fmt(p.asym,5) : 'brak skończonej asymptoty pionowej',
+      note:'Dla ν ≥ 2 granica P też ucieka do nieskończoności i pionowej asymptoty nie ma — hodograf wchodzi w nieskończoność pod kątem −ν·90°. Opóźnienie transportowe nie zmienia tej granicy: e^(−jωT_d) → 1 przy ω → 0, więc asymptota pozostaje dokładna także dla T_d > 0.'};
+  },
+  'nq-A'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Punkt charakterystyczny', title:'Punkt startowy A = Gₒ(0)',
+      what:'Przy braku miejsca zerowego w s = 0 hodograf zaczyna się w punkcie skończonym, na osi rzeczywistej (bo Gₒ(0) ma zerową część urojoną przy rzeczywistych współczynnikach). Jest to wzmocnienie statyczne układu otwartego.',
+      formula:['A = Gₒ(0) = P(0) + jQ(0) = k_p'],
+      steps:[['P(0)', p.start? fx(p.start.re) : '—'],
+             ['Q(0)', p.start? fx(p.start.im) : '—'],
+             ['k_p', isFinite(A.kp)? fx(A.kp) : '∞'],
+             ['uchyb statyczny e_ss = 1/(1+k_p)', isFinite(A.kp)? fx(1/(1+A.kp)) : '0']],
+      result: p.start? '( '+fx(p.start.re)+' , j'+fx(p.start.im)+' )' : 'w nieskończoności',
+      note:'Im dalej ten punkt leży od zera, tym większe wzmocnienie statyczne i tym mniejszy uchyb ustalony — ale i tym bliżej punktu krytycznego przebiega dalsza część krzywej.'};
+  },
+  'nq-big'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Kontur', title:'Duży łuk domykający, R → ∞',
+      what:'Odcinek konturu biegnący po półokręgu o promieniu R → ∞ przez prawą półpłaszczyznę, od +j∞ do −j∞. Dla transmitancji ściśle właściwej (n > m) moduł Gₒ maleje jak R^(m−n), więc CAŁY ten łuk odwzorowuje się w jeden punkt: początek układu.',
+      formula:['|Gₒ(R·e^(jθ))| ≈ |K| · R^(m−n)  →  0  dla n > m',
+               'kąt dojścia do zera: −90°·(n − m)'],
+      steps:[['stopień licznika m', String(p.degN)], ['stopień mianownika n', String(p.degD)],
+             ['n − m', String(p.relDeg)],
+             ['obraz łuku', p.bigArc? '( '+fx(p.bigArc.re)+' , j'+fx(p.bigArc.im)+' )' : 'ucieka do nieskończoności'],
+             ['kąt dojścia', fmt(-90*p.relDeg,4)+'°']],
+      result: p.bigArc? 'punkt ( '+fx(p.bigArc.re)+' , j'+fx(p.bigArc.im)+' )' : 'niewłaściwa transmitancja',
+      note:'Dla n = m łuk odwzorowuje się w punkt bₘ/aₙ na osi rzeczywistej, a nie w zero. Przy opóźnieniu transportowym e^(−T_d s) na tym łuku Re s > 0, więc czynnik ten dodatkowo tłumi — punkt pozostaje w zerze.'};
+  },
+  'nq-reldeg'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Hodograf', title:'Kąt dojścia hodografu do początku układu',
+      what:'Przy ω → ∞ o kształcie krzywej decyduje wyłącznie różnica stopni n − m: każdy nadmiarowy biegun dokłada −90° fazy. Krzywa wchodzi do zera stycznie do tego kierunku.',
+      formula:['arg Gₒ(jω) → −90°·(n − m)  przy ω → ∞'],
+      steps:[['m (stopień licznika)', String(p.degN)], ['n (stopień mianownika)', String(p.degD)],
+             ['n − m', String(p.relDeg)], ['kąt dojścia', fmt(-90*p.relDeg,4)+'°'],
+             ['ćwiartka dojścia', ['I','IV','III','II'][((p.relDeg%4)+4)%4]]],
+      result:fmt(-90*p.relDeg,4)+'°',
+      note:'Opóźnienie transportowe łamie tę regułę: e^(−jωT_d) obraca fazę bez ograniczenia, więc hodograf wchodzi do zera spiralą o nieskończonej liczbie zwojów.'};
+  },
+  'nq-qroots'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Wynik dokładny', title:'Q(ω) = 0 — przecięcia z osią rzeczywistą',
+      what:'Hodograf tnie oś rzeczywistą dokładnie tam, gdzie znika część urojona. Ponieważ Q jest ilorazem wielomianów, wystarczy przyrównać do zera jego licznik — to daje ω₁₈₀ jako pierwiastek równania algebraicznego, bez żadnego przeszukiwania siatki.',
+      formula:['Q(ω) = 0  ⇔  B(ω)·C(ω) − A(ω)·D(ω) = 0',
+               'GM = 1 / |P(ω₁₈₀)|'],
+      steps:[['licznik Q(ω)', polyToHtml(p.Qn,'','ω')],
+             ...(p.reCrossAll.length? p.reCrossAll.map(q=>['ω = '+fx(q.w)+' → P', fx(q.P)+(q.P<0?'  (ujemna półoś)':'  (dodatnia półoś)')])
+                                    : [['pierwiastki dodatnie','brak — krzywa nie tnie osi Re']]),
+             ['ω₁₈₀ przyjęte do GM', A.w180!==null? fx(A.w180) : '—'],
+             ['GM', isFinite(A.gm)? fx(A.gm)+' ('+fmt(20*Math.log10(A.gm),4)+' dB)' : '∞']],
+      result: p.reCrossAll.length? p.reCrossAll.map(q=>fx(q.w)).join(', ')+' rad/s' : 'brak przecięć',
+      note: p.exact? 'Wartości są dokładne — to pierwiastki wielomianu, a nie odczyt z siatki częstotliwości.'
+                   : 'Uwaga: przy T_d > 0 to są przecięcia samej części wymiernej. Pełna faza zawiera jeszcze −ωT_d, więc rzeczywiste ω₁₈₀ jest inne — bierze je bisekcja na dokładnym Gₒ(jω).'};
+  },
+  'nq-wcroots'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Wynik dokładny', title:'|Gₒ(jω)| = 1 — przecięcia z okręgiem jednostkowym',
+      what:'Zamiast szukać ω_c numerycznie, przyrównujemy kwadraty modułów licznika i mianownika. Podniesienie do kwadratu usuwa pierwiastek i zostaje zwykłe równanie wielomianowe w ω.',
+      formula:['|Gₒ(jω)|² = (A² + B²) / (C² + D²) = 1',
+               'A² + B² − (C² + D²) = 0',
+               'PM = 180° + arg Gₒ(jω_c)'],
+      steps:[['A² + B² − C² − D²', polyToHtml(p.magEq,'','ω')],
+             ...(p.unitAll.length? p.unitAll.map(q=>['ω_c = '+fx(q.w)+' → PM', fmt(q.pm,4)+'°'])
+                                 : [['pierwiastki dodatnie','brak — krzywa nie tnie okręgu jednostkowego']]),
+             ['ω_c przyjęte do PM', A.wc? fx(A.wc) : '—']],
+      result: p.unitAll.length? p.unitAll.map(q=>fx(q.w)).join(', ')+' rad/s' : 'brak przecięć',
+      note:'Moduł nie zależy od opóźnienia (|e^(−jωT_d)| = 1), więc te pierwiastki są dokładne także przy T_d > 0 — zmienia się tylko odczytany w nich zapas fazy.'};
   },
 };

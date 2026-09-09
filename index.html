@@ -121,12 +121,28 @@
       <div class="legend">
         <span><i style="background:var(--accent)"></i>ω: 0⁺ → ∞</span>
         <span><i style="background:var(--muted)"></i>ω: −∞ → 0⁻ (odbicie)</span>
-        <span><i style="background:var(--amber)"></i>łuk wcięcia (ν·180° CW)</span>
+        <span><i style="background:var(--amber); border-top:2px dashed var(--amber); height:0"></i>łuk wcięcia, promień → ∞ (rysowany umownie przy ramce)</span>
+        <span><i class="sq" style="background:var(--good)"></i>obraz dużego łuku R → ∞</span>
+        <span><i style="background:var(--accent); opacity:.45; height:0; border-top:1px dashed var(--accent)"></i>fragment zwinięty na horyzont |G| → ∞</span>
         <span><i class="sq" style="background:var(--bad)"></i>punkt (−1, j0)</span>
+        <span>① … ⑤ numery etapów</span>
       </div>
       <p class="note" id="nqNote"></p>
     </section>
   </div>
+
+  <section class="card">
+    <header>
+      <h2>Hodograf krok po kroku — P(ω), Q(ω) i etapy konturu</h2>
+      <p>Ta sama kolejność co przy rysowaniu ręcznym: najpierw rozdzielenie G<sub>o</sub>(jω) na część rzeczywistą i urojoną przez pomnożenie przez sprzężenie mianownika, potem podział konturu Cauchy'ego na etapy. Wszystko liczone na wielomianach, więc ω<sub>180</sub>, ω<sub>c</sub> i asymptota wychodzą dokładnie, a nie z przeszukiwania siatki.</p>
+    </header>
+    <div class="pq-derive" id="pqDerive"></div>
+    <dl class="readout" id="pqFacts"></dl>
+    <div class="canvas-wrap" style="overflow-x:auto; padding:14px 16px">
+      <table class="routh-table stage-table" id="stageTable"></table>
+    </div>
+    <p class="note" id="pqNote"></p>
+  </section>
 
   <section class="card">
     <header>

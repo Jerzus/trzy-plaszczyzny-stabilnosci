@@ -32,7 +32,14 @@ export const EXP_LABEL={
   'pm':'Zapas fazy', 'gm':'Zapas wzmocnienia',
   'nq-crit':'Punkt krytyczny (−1, j0)', 'nq-pos':'Gałąź ω > 0', 'nq-neg':'Gałąź lustrzana',
   'nq-arc':'Łuk wcięcia', 'nq-unit':'Okrąg jednostkowy', 'nq-wc':'Punkt przy ω_c',
-  'recross':'Przecięcie z osią Re'
+  'recross':'Przecięcie z osią Re',
+  'nq-arc-up':'Górny łuk wcięcia (etap 1)', 'nq-arc-dn':'Dolny łuk wcięcia (etap 5)',
+  'nq-big':'Duży łuk domykający R → ∞', 'nq-asym':'Asymptota pionowa Re = lim P(ω)',
+  'nq-A':'Punkt startowy A = G(0)', 'nq-pq':'Rozkład na P(ω) i Q(ω)',
+  'nq-order':'ν, μ i rząd zachowania w s = 0', 'nq-stages':'Etapy konturu Cauchy’ego',
+  'nq-c':'Współczynnik c łuku wcięcia', 'nq-arcang':'Kąt łuku wcięcia',
+  'nq-reldeg':'Kąt dojścia do zera', 'nq-qroots':'Q(ω) = 0 — przecięcia z osią Re',
+  'nq-wcroots':'|G| = 1 — przecięcia z okręgiem jednostkowym'
 };
 
 /* ---------- explanation dialog rendering ---------- */

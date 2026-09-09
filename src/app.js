@@ -8,6 +8,7 @@ import { fitFig } from './fig-common.js';
 import { fmt, fx } from './format.js';
 import { K, S, adoptTF, charPolyCoeffs, polyFrom } from './model.js';
 import { BSTATE, bdFromAnalysis, initBlockDrag, refreshBlock } from './panel-block.js';
+import { renderNyquistPanel } from './panel-nyquist.js';
 import { refreshRouth } from './panel-routh.js';
 import { RLC_SEL, SSM, applyRlc, renderRlcDiagram, renderRlcParams, resetOrder, setOrderButtons, setRlcTopology, syncFromTF } from './panel-ss.js';
 import { renderTF } from './panel-tf.js';
@@ -102,7 +103,7 @@ function refresh(){
   $('tdOut').textContent=fmt(S.Td)+' s';
   $('zoomOut').textContent=fmt(S.zoom,2)+'×';
   const A=analyse(); LAST=A;
-  renderTF(A); drawRootLocus(A); drawNyquist(A); drawBode(A);
+  renderTF(A); drawRootLocus(A); drawNyquist(A); renderNyquistPanel(A); drawBode(A);
 }
 
 let pending=0;

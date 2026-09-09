@@ -3,21 +3,22 @@ import { $ } from './dom.js';
 /* ---------- Routh tab rendering ---------- */
 export function fmtK(v){ return isFinite(v)? fx(v) : (v>0?'+\u221e':'\u2212\u221e'); }
 
-export function polyToHtml(c,label){
-  const n=c.length-1, parts=[];
+export function polyToHtml(c,label,v0){
+  const n=c.length-1, parts=[], x=v0||'s';
   c.forEach((v,i)=>{
     if(Math.abs(v)<1e-12 && n>0) return;
     const pw=n-i, sgn = parts.length? (v<0?' \u2212 ':' + ') : (v<0?'\u2212':'');
     const av=fx(Math.abs(v));
-    const term = pw===0? av : (pw===1? (Math.abs(v-1)<1e-9?'s':av+'s') : (Math.abs(v-1)<1e-9?'s'+sup(pw):av+'s'+sup(pw)));
+    const one = Math.abs(Math.abs(v)-1)<1e-9;   // znak jest juz w sgn, wiec |v| = 1 -> sam symbol
+    const term = pw===0? av : (pw===1? (one?x:av+x) : (one?x+sup(pw):av+x+sup(pw)));
     parts.push(sgn+term);
   });
   return (label?label+' = ':'')+(parts.join('')||'0');
 }
 
-export function fracHtml(numDesc,denDesc,leadLabel){
-  const numS = polyToHtml(numDesc,'') || '0';
-  const denS = polyToHtml(denDesc,'') || '1';
+export function fracHtml(numDesc,denDesc,leadLabel,v0){
+  const numS = polyToHtml(numDesc,'',v0) || '0';
+  const denS = polyToHtml(denDesc,'',v0) || '1';
   return `<span class="lead">${esc(leadLabel)}</span><span class="stack"><span>${esc(numS)}</span><span>${esc(denS)}</span></span>`;
 }
 

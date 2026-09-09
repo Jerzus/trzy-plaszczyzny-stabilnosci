@@ -1,5 +1,6 @@
 import { C, DEG, cabs, carg, cdiv } from './complex.js';
 import { Gof, K, ND, S, expand, resp } from './model.js';
+import { nyquistPlan } from './nyquist-pq.js';
 import { polyRoots, polyaddK, polyder, polymul, polyvalC } from './poly.js';
 
 /* Frequency-domain analysis. analyse() is the composition of the named steps
@@ -70,30 +71,67 @@ function phaseCrossover({ w, mag, ph }) {
   return { w180, reCross, gm: reCross !== null ? 1 / Math.abs(reCross) : Infinity };
 }
 
-/** The Cauchy contour and how many times its image encircles (-1, j0). */
-function nyquistContour(lo, hi) {
-  const wlo = lo / 50, whi = hi * 20, NP = 1400, NA = 400;
-  const pos = [], neg = [], arc = [];
+/** Half-size of the Nyquist view, in the units of the complex plane. The
+    drawing needs it, but so does the contour: the radius of the indentation
+    arc is chosen from it, so that the image of the arc lands safely outside
+    the visible box no matter how far the user has zoomed out. */
+function viewRadius(reCross, kp) {
+  let R = 2.5;
+  if (reCross !== null) R = Math.max(R, 1.4 * Math.abs(reCross));
+  if (S.nu === 0 && isFinite(kp)) R = Math.max(R, 1.3 * Math.abs(kp));
+  return R / S.zoom;
+}
+
+/** Radius of the indentation around s = 0.
+    Near the origin G(s) ~ c*s^(-d), d = nu - mu, so the image of the arc is a
+    circle of radius |c|*eps^(-d). Pick eps small enough that this radius is far
+    outside the view (d > 0), or far inside it (d < 0), and always small enough
+    for the asymptotic form to hold. */
+function indentRadius(lo, d, c, R) {
+  const cap = lo / 20;
+  const a = Math.abs(c) > 1e-300 ? Math.abs(c) : 1;
+  if (d > 0) return Math.min(cap, Math.pow(a / (40 * R), 1 / d));
+  if (d < 0) return Math.min(cap, Math.pow(R / (300 * a), 1 / (-d)));
+  return lo / 500;
+}
+
+/** The Cauchy contour and how many times its image encircles (-1, j0).
+
+    The contour is walked in the order it is drawn by hand, starting at
+    s = +eps on the real axis: upper indentation arc, up the imaginary axis,
+    the closing arc of radius R -> infinity through the right half-plane, back
+    down the imaginary axis, lower indentation arc. Without a zero of G at
+    s = 0 (in either the numerator or the denominator) no indentation is
+    needed and only three stages remain. */
+function nyquistContour(lo, hi, eps, indent) {
+  const whi = hi * 20, NP = 1400, NA = 240, NB = 200;
+  const pos = [], neg = [], arcUp = [], arcDn = [], big = [];
   for (let i = 0; i < NP; i++) {
-    const ww = wlo * Math.pow(whi / wlo, i / (NP - 1));
+    const ww = eps * Math.pow(whi / eps, i / (NP - 1));
     pos.push({ w: ww, g: Gof(C(0, ww)) });
   }
   for (let i = 0; i < NP; i++) {
     const q = pos[NP - 1 - i];
-    neg.push({ w: -q.w, g: C(q.g.re, -q.g.im) });
+    neg.push({ w: -q.w, g: C(q.g.re, -q.g.im) });     // conjugate symmetry
   }
-  for (let i = 0; i < NA; i++) {        // indentation around the pole at the origin
-    const th = -Math.PI / 2 + Math.PI * i / (NA - 1);
-    arc.push({ g: Gof(C(wlo * Math.cos(th), wlo * Math.sin(th))) });
+  if (indent) for (let i = 0; i < NA; i++) {
+    const t = i / (NA - 1), up = Math.PI / 2 * t, dn = -Math.PI / 2 * (1 - t);
+    arcUp.push({ th: up, g: Gof(C(eps * Math.cos(up), eps * Math.sin(up))) });
+    arcDn.push({ th: dn, g: Gof(C(eps * Math.cos(dn), eps * Math.sin(dn))) });
+  }
+  for (let i = 0; i < NB; i++) {                       // closing arc, |s| = whi
+    const th = Math.PI / 2 - Math.PI * i / (NB - 1);
+    big.push({ th, g: Gof(C(whi * Math.cos(th), whi * Math.sin(th))) });
   }
 
-  const path = [...neg.map(q => q.g), ...arc.map(q => q.g), ...pos.map(q => q.g)];
+  const path = [...arcUp, ...pos, ...big, ...neg, ...arcDn].map(q => q.g);
   const ang = p => carg(C(p.re + 1, p.im));
   let acc = 0, prev = ang(path[0]);
   const step = a => { let d = a - prev; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; acc += d; prev = a; };
   for (let i = 1; i < path.length; i++) step(ang(path[i]));
-  step(ang(path[0]));                   // closing semicircle at infinity
-  return { pos, neg, arc, Ncw: Math.round(-acc / (2 * Math.PI)) };
+  step(ang(path[0]));                   // the contour closes on itself at s = +eps
+  return { pos, neg, arcUp, arcDn, big, eps,
+           Ncw: Math.round(-acc / (2 * Math.PI)) };
 }
 
 /** Real-axis segments: rule 2 of the formula sheet (odd count to the right). */
@@ -158,15 +196,19 @@ export function analyse() {
 
   const { wc, pm } = gainCrossover(curve);
   const { w180, reCross, gm } = phaseCrossover(curve);
-  const { pos, neg, arc, Ncw } = nyquistContour(lo, hi);
+
+  const kp = S.nu === 0 ? Gof(C(1e-9, 0)).re : Infinity;
+  const plan = nyquistPlan();
+  const Rview = viewRadius(reCross, kp);
+  const eps = indentRadius(lo, plan.d, plan.c, Rview);
+  const cont = nyquistContour(lo, hi, eps, plan.nStages === 5);
 
   const Popen = P.filter(p => p.re > 1e-9).length;
-  const kp = S.nu === 0 ? Gof(C(1e-9, 0)).re : Infinity;
 
   return {
     lo, hi, ...curve,
     wc, pm, w180, gm, reCross,
-    pos, neg, arc, Ncw, P: Popen, Z: Ncw + Popen, kp,
+    ...cont, P: Popen, Z: cont.Ncw + Popen, kp, Rview, plan,
     poles: P, zeros: Z,
     ...locusGeometry(P, Z),
   };

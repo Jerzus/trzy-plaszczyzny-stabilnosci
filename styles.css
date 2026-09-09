@@ -426,6 +426,38 @@ table.routh-table td.piv.sign-flip::before{
 table.routh-table td.eps{font-style:italic}
 table.routh-table tr:hover td{background:color-mix(in srgb,var(--accent) 6%,transparent)}
 
+/* ---------- hodograf krok po kroku: P(w), Q(w), etapy konturu ---------- */
+.pq-derive{display:flex; flex-direction:column; gap:10px; padding:14px 16px 4px}
+.pq-line{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; display:flex; align-items:center;
+  gap:6px; flex-wrap:wrap; overflow-x:auto; padding-bottom:2px;
+}
+.pq-line .stack{display:inline-flex; flex-direction:column; align-items:center; gap:3px}
+.pq-line .stack > span{padding:2px 6px; white-space:nowrap}
+.pq-line .stack > span:first-child{border-bottom:1.5px solid var(--ink)}
+.pq-line .lead{white-space:nowrap; color:var(--accent); font-weight:600}
+.pq-lead{font-size:13.5px}
+.pq-def{color:var(--muted); font-size:12px}
+.pq-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:6px 18px;
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px;
+}
+.pq-poly{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:3px;
+  padding:5px 9px; overflow-x:auto; white-space:nowrap;
+}
+.pq-warn{
+  padding:9px 12px; border-radius:3px; font-size:12px; line-height:1.55;
+  background:color-mix(in srgb,var(--amber) 12%,transparent);
+  border:1px solid color-mix(in srgb,var(--amber) 40%,transparent); color:var(--ink);
+}
+table.stage-table td, table.stage-table th{text-align:left; white-space:nowrap}
+table.stage-table td.rowlab{white-space:nowrap}
+table.stage-table td.wide{white-space:normal; min-width:220px; color:var(--muted)}
+table.stage-table tr[data-ex]{cursor:default}
+body.explain table.stage-table tr[data-ex]{cursor:pointer}
+body.explain table.stage-table tr[data-ex]:hover td{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+
 .rng-badge{
   display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:3px;
   font-family:"IBM Plex Mono",monospace; font-size:13.5px; border:1px solid; margin:2px 0;

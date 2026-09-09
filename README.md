@@ -12,7 +12,8 @@ karty w stylu kart przeglądarki:
   z domknięciem wokół biegunów w zerze, punktem krytycznym `(−1, j0)` i liczbą okrążeń).
   Kryterium Nyquista `Z = N + P` liczone jest numerycznie z przyrostu argumentu
   `1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
-  z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym.
+  z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym. Hodograf jest
+  rozpisany na **etapy rysowania ręcznego** — patrz niżej.
 - **Routh–Hurwitz** — warunek konieczny (znaki współczynników) i pełna tablica Routha
   dla bieżącego `K`, z krzyżową kontrolą względem `Z` z konturu Nyquista; oraz
   przedziały `K`, dla których układ zamknięty jest stabilny, wyznaczone symbolicznie
@@ -30,6 +31,71 @@ karty w stylu kart przeglądarki:
   RLC/RC/RL rysowanych prawdziwymi symbolami elektrycznymi (rezystor, cewka,
   kondensator, węzły, zaciski `u₁`/`u₂`), z transmitancją i modelem stanowym
   wyprowadzonymi z równań obwodu.
+
+## Hodograf krok po kroku: P(ω), Q(ω) i etapy konturu
+
+Karta Analiza pokazuje hodograf tak, jak wyprowadza się go na kartce.
+
+**Krok 1 — rozdzielenie na P i Q.** Po podstawieniu `s = jω` mianownik jest
+zespolony, więc mnożymy licznik i mianownik przez sprzężenie mianownika:
+
+```
+G_o(jω) = (A + jB)/(C + jD) = (A + jB)(C − jD)/(C² + D²)
+P(ω) = (A·C + B·D)/(C² + D²)      Q(ω) = (B·C − A·D)/(C² + D²)
+```
+
+`A`, `B`, `C`, `D` to wielomiany rzeczywiste w `ω`, powstałe z podstawienia
+`s = jω` (`j^k` cykluje `1, j, −1, −j`, więc potęgi parzyste dają część
+rzeczywistą, nieparzyste — urojoną). Wszystkie cztery, a także liczniki `P` i `Q`
+oraz wspólny mianownik `C² + D²`, są wypisane w karcie w postaci jawnej.
+
+Ponieważ to zwykła arytmetyka wielomianów, kilka wielkości wychodzi **dokładnie**,
+a nie z przeszukiwania siatki częstotliwości:
+
+| wielkość | równanie |
+|---|---|
+| `ω_180` i `Re G` w tym punkcie | dodatnie pierwiastki licznika `Q(ω) = 0` |
+| `ω_c` i `PM` | dodatnie pierwiastki `A² + B² − C² − D² = 0` (czyli `\|G\| = 1`) |
+| asymptota pionowa `Re = lim_{ω→0} P(ω)` | iloraz najniższych potęg `ω` licznika i mianownika |
+| kąt dojścia do zera | `−90°·(n − m)` |
+
+Dla `10/[s(s+1)(s+2)]` daje to `P = −30ω²/(ω⁶ + 5ω⁴ + 4ω²)`,
+`Q = (10ω³ − 20ω)/(ω⁶ + 5ω⁴ + 4ω²)`, stąd `ω_180 = √2`, `P(ω_180) = −5/3`
+i asymptota `Re = −7,5` — dokładnie wyniki z instrukcji.
+Moduł nie zależy od opóźnienia (`|e^{-jωT_d}| = 1`), więc pierwiastki dla `ω_c`
+pozostają dokładne również przy `T_d > 0`; `ω_180` — nie, bo faza się przesuwa.
+
+**Krok 2 — etapy konturu.** Liczba etapów zależy wyłącznie od tego, czy `G_o(s)`
+ma miejsce zerowe w `s = 0`: biegun w mianowniku (`ν`) albo zero w liczniku (`μ`).
+Kontur Cauchy'ego nie może przez taki punkt przejść, więc omija go wcięciem
+`s = ε·e^{jθ}`, `ε → 0` — przechodzi nieskończenie blisko `(0, j0)`, ale po stronie
+prawej półpłaszczyzny, przez co biegun w zerze zostaje **na zewnątrz** konturu i nie
+wlicza się do `P`. Wcięcie dokłada dwa etapy:
+
+| | ν = μ = 0 — trzy etapy | ν > 0 lub μ > 0 — pięć etapów |
+|---|---|---|
+| 1 | `s = jω`, `ω: 0 → +∞` | górny łuk wcięcia, `θ: 0° → +90°` |
+| 2 | `s = R·e^{jθ}`, `R → ∞`, `θ: +90° → −90°` | `s = jω`, `ω: 0⁺ → +∞` |
+| 3 | `s = jω`, `ω: −∞ → 0` | `s = R·e^{jθ}`, `R → ∞`, `θ: +90° → −90°` |
+| 4 | | `s = jω`, `ω: −∞ → 0⁻` |
+| 5 | | dolny łuk wcięcia, `θ: −90° → 0°` |
+
+Kolejność jest kolejnością obchodzenia konturu, startując od `s = +ε` na osi
+rzeczywistej. Obrazem wcięcia jest łuk o promieniu `|c|·ε^{−d}`, gdzie
+`d = ν − μ`, a `c = lim_{s→0} s^d·G_o(s)`; argument zmienia się o `−d·180°` na
+całym wcięciu, po `−d·90°` na każdą połówkę. Dla `d > 0` promień dąży do
+nieskończoności — i to właśnie ten łuk wnosi okrążenia punktu `(−1, j0)`
+(klasyczne `N = 2` dla `10/[s(s+1)(s+2)]` bierze się w całości z niego).
+
+**Rysunek.** Żeby hodograf domykał się na ekranie, wszystko poza okręgiem
+`0,9·R_widoku` jest rzutowane promieniście na ten okrąg: cała nieskończoność
+płaszczyzny `G` zwija się w jeden „horyzont”. Wewnątrz horyzontu krzywa jest
+narysowana bez żadnych zniekształceń; fragmenty zwinięte rysowane są cienką,
+bladą kreską, a łuki wcięcia — przerywaną linią bursztynową, z zachowanym
+dokładnym kątem i zwrotem. Etapy są ponumerowane na wykresie tymi samymi
+numerami co w tabeli. Bez tego domknięcia krzywa jest otwarta i okrążeń punktu
+krytycznego po prostu nie da się policzyć — a to najczęstszy błąd przy
+rysowaniu ręcznym.
 
 ## Rozkład Bodego na składniki
 
@@ -62,7 +128,10 @@ zapas fazy, zapas wzmocnienia `M_g`, przecięcie z osią Re, `k_p`, bieguny i ze
 otwartego, bieguny układu zamkniętego (z `ζ`, `ω_n`, `M_p` i czasami ustalania), asymptoty
 i punkt `δ`, punkty rozejścia się linii, odcinki na osi rzeczywistej, obie krzywe Bodego,
 linie odniesienia 0 dB i −180°, pulsacje łamania, punkt krytyczny `(−1, j0)`, obie gałęzie
-hodografu, łuk wcięcia i okrąg jednostkowy.
+hodografu, oba łuki wcięcia i okrąg jednostkowy, a także rozkład na `P(ω)` i `Q(ω)`,
+rzędy `ν`, `μ`, `d`, współczynnik `c` i kąt łuku wcięcia, asymptota pionowa, punkt
+startowy `A = G_o(0)`, obraz dużego łuku domykającego, kąt dojścia do zera oraz oba
+dokładne równania pierwiastkowe (`Q(ω) = 0` i `|G_o| = 1`).
 
 W tym trybie wykres linii pierwiastkowych dorysowuje też asymptoty, punkt `δ`, punkty
 rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji łamania.
@@ -83,15 +152,15 @@ przeglądarka ładuje moduły bezpośrednio.
 
 ## Struktura
 
-`index.html` (sama struktura), `styles.css` oraz `src/` — 25 modułów ES ułożonych
+`index.html` (sama struktura), `styles.css` oraz `src/` — 27 modułów ES ułożonych
 w warstwy, bez ani jednego cyklu w grafie zależności:
 
 | warstwa | moduły |
 |---|---|
 | bez zależności | `complex.js`, `format.js`, `dom.js` |
-| matematyka | `poly.js`, `model.js`, `analysis.js`, `routh.js`, `statespace.js`, `blocks.js`, `circuits.js`, `bode-terms.js` |
+| matematyka | `poly.js`, `model.js`, `nyquist-pq.js`, `analysis.js`, `routh.js`, `statespace.js`, `blocks.js`, `circuits.js`, `bode-terms.js` |
 | rysowanie | `plot-core.js`, `plot-locus.js`, `plot-nyquist.js`, `plot-bode.js`, `fig-common.js`, `fig-block.js`, `fig-sim.js`, `fig-circuit.js` |
-| panele | `panel-tf.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js` |
+| panele | `panel-tf.js`, `panel-nyquist.js`, `panel-routh.js`, `panel-ss.js`, `panel-block.js` |
 | wyjaśnienia | `explain.js` (dyspozytor) + `explain-helpers.js` i pięć tablic tematycznych `explain-*.js` |
 | wejście | `app.js` — okablowanie, karty, autotest |
 
