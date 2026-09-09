@@ -38,6 +38,8 @@ export const EXP_LABEL={
   'nq-A':'Punkt startowy A = G(0)', 'nq-pq':'Rozkład na P(ω) i Q(ω)',
   'nq-order':'ν, μ i rząd zachowania w s = 0', 'nq-stages':'Etapy konturu Cauchy’ego',
   'nq-c':'Współczynnik c łuku wcięcia', 'nq-arcang':'Kąt łuku wcięcia',
+  'nq-phi0':'φ₀ — kąt położenia startu (= start fazy Bodego)',
+  'nq-exit':'Kąt wyjścia hodografu przy ω → 0⁺',
   'nq-reldeg':'Kąt dojścia do zera', 'nq-qroots':'Q(ω) = 0 — przecięcia z osią Re',
   'nq-wcroots':'|G| = 1 — przecięcia z okręgiem jednostkowym'
 };

@@ -43,6 +43,8 @@ export function renderNyquistPanel(A) {
     ['kąt łuku wcięcia', pl.nStages === 5 ? fmt(-pl.d * 180, 4) + '°' : '—', 'nq-arcang'],
     ['asymptota Re = lim P(ω)', pl.nStages === 5 && pl.d > 0 ? fmt(pl.asym, 4) : '—', 'nq-asym'],
     ['punkt startowy A = Gₒ(0)', pl.nStages === 3 && pl.start ? '(' + fx(pl.start.re) + ' , j' + fx(pl.start.im) + ')' : '∞', 'nq-A'],
+    ['φ₀ = arg Gₒ(j0⁺) — start fazy Bodego', fmt(pl.phi0, 4) + '°', 'nq-phi0'],
+    ['kąt wyjścia przy ω → 0⁺', fmt(pl.exitAng, 4) + '°', 'nq-exit'],
     ['n − m, kąt dojścia do zera', `${pl.relDeg} , ${fmt(-90 * pl.relDeg, 4)}°`, 'nq-reldeg'],
     ['obraz dużego łuku', pl.bigArc ? '(' + fx(pl.bigArc.re) + ' , j' + fx(pl.bigArc.im) + ')' : '∞', 'nq-big'],
     ['Q(ω) = 0  →  ω, P(ω)', rootTxt(pl.reCrossAll, q => fx(q.w) + ' → ' + fx(q.P)), 'nq-qroots'],

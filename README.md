@@ -58,12 +58,32 @@ a nie z przeszukiwania siatki częstotliwości:
 | `ω_c` i `PM` | dodatnie pierwiastki `A² + B² − C² − D² = 0` (czyli `\|G\| = 1`) |
 | asymptota pionowa `Re = lim_{ω→0} P(ω)` | iloraz najniższych potęg `ω` licznika i mianownika |
 | kąt dojścia do zera | `−90°·(n − m)` |
+| kąt położenia startu `φ₀` | `arg c − d·90°` — ta sama liczba, od której startuje faza na Bodem |
+| kąt wyjścia przy `ω → 0⁺` | `φ₀ + 180°` dla `d > 0`, `φ₀` dla `d < 0`, `±90°` (znak `Q′(0)`) dla `d = 0` |
 
 Dla `10/[s(s+1)(s+2)]` daje to `P = −30ω²/(ω⁶ + 5ω⁴ + 4ω²)`,
 `Q = (10ω³ − 20ω)/(ω⁶ + 5ω⁴ + 4ω²)`, stąd `ω_180 = √2`, `P(ω_180) = −5/3`
 i asymptota `Re = −7,5` — dokładnie wyniki z instrukcji.
 Moduł nie zależy od opóźnienia (`|e^{-jωT_d}| = 1`), więc pierwiastki dla `ω_c`
 pozostają dokładne również przy `T_d > 0`; `ω_180` — nie, bo faza się przesuwa.
+
+Warto rozróżnić dwa kąty, bo mylenie ich jest źródłem pozornego przesunięcia
+o 180°. `φ₀` mówi, **gdzie** leży początek hodografu (to jest wartość, od której
+startuje charakterystyka fazowa Bodego), a kąt wyjścia — **dokąd** krzywa z tego
+punktu jedzie. Przy `ω → 0` zachodzi `G_o(jω) ≈ c·(jω)^(−d)`, więc argument jest
+stały (cały niskoczęstotliwościowy fragment leży na jednej półprostej), a zmienia
+się sam moduł `|c|·ω^(−d)`. Różniczkowanie po `ω` mnoży `e^{jφ₀}` przez liczbę
+rzeczywistą `−d·|c|·ω^(−d−1)`: dla `d > 0` ujemną, czyli obrót o 180° — punkt
+sunie po półprostej **do środka**, więc wektor prędkości jest antyrównoległy do
+wektora położenia. Dla `d = 0` moduł jest skończony i decyduje parzystość:
+`P` parzysta (`P′(0) = 0`), `Q` nieparzysta, więc krzywa opuszcza punkt startowy
+prostopadle, a `Q′(0) = k_p·(Στ_z − Στ_p)`. Ta sama suma stałych czasowych przy
+`ν = 1` wyznacza położenie asymptoty pionowej, `Re = K_v·(Στ_z − Στ_p)`.
+
+Znak `c` zbiera wszystkie źródła przesunięcia `φ₀` o 180°: ujemne `K` oraz każdy
+**rzeczywisty** biegun lub zero w prawej półpłaszczyźnie, bo `(jω − p)` w `ω = 0`
+równa się `−p`. Para zespolona sprzężona daje `|z|² > 0` i nie wnosi nic. To jest
+dokładnie „minus wyciągnięty z czynników” z rozkładu Bodego: `(s − 3) = −3(1 − s/3)`.
 
 **Krok 2 — etapy konturu.** Liczba etapów zależy wyłącznie od tego, czy `G_o(s)`
 ma miejsce zerowe w `s = 0`: biegun w mianowniku (`ν`) albo zero w liczniku (`μ`).
@@ -130,8 +150,9 @@ i punkt `δ`, punkty rozejścia się linii, odcinki na osi rzeczywistej, obie kr
 linie odniesienia 0 dB i −180°, pulsacje łamania, punkt krytyczny `(−1, j0)`, obie gałęzie
 hodografu, oba łuki wcięcia i okrąg jednostkowy, a także rozkład na `P(ω)` i `Q(ω)`,
 rzędy `ν`, `μ`, `d`, współczynnik `c` i kąt łuku wcięcia, asymptota pionowa, punkt
-startowy `A = G_o(0)`, obraz dużego łuku domykającego, kąt dojścia do zera oraz oba
-dokładne równania pierwiastkowe (`Q(ω) = 0` i `|G_o| = 1`).
+startowy `A = G_o(0)`, kąt położenia `φ₀` i kąt wyjścia przy `ω → 0⁺`, obraz dużego
+łuku domykającego, kąt dojścia do zera oraz oba dokładne równania pierwiastkowe
+(`Q(ω) = 0` i `|G_o| = 1`).
 
 W tym trybie wykres linii pierwiastkowych dorysowuje też asymptoty, punkt `δ`, punkty
 rozejścia i odcinki na osi rzeczywistej, a wykres Bodego — znaczniki pulsacji łamania.

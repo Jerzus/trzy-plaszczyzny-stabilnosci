@@ -115,6 +115,28 @@ export function nyquistPlan() {
 
   const asym = limAt0(f.Pn, f.den);                 // asymptota pionowa Re = lim P
   const qLim = limAt0(f.Qn, f.den);
+
+  /* Kat polozenia poczatku hodografu i kierunek, w ktorym krzywa z niego
+     wychodzi. To dwie rozne rzeczy: G(jw) ~ c*(jw)^(-d), wiec argument
+     phi0 = arg c - d*90 nie zalezy od w -- caly niskoczestotliwosciowy
+     fragment lezy na jednej polprostej -- natomiast modul |c|*w^(-d) jest
+     monotoniczny. Rozniczkowanie po w mnozy e^(j*phi0) przez liczbe
+     rzeczywista -d*|c|*w^(-d-1): ujemna dla d > 0, czyli obrot o 180
+     stopni (punkt sunie po polprostej DO srodka), dodatnia dla d < 0
+     (ucieka od srodka, kierunek zgodny z phi0).
+     Dla d = 0 modul jest skonczony i o kierunku decyduje pierwszy wyraz
+     rozwiniecia: G ~ c(1 + jw*SIGMA), czyli dG/dw = j*c*SIGMA = j*Q'(0) --
+     wyjscie prostopadle do promienia, w gore albo w dol zaleznie od znaku. */
+  const nrm = a => { while (a > 180) a -= 360; while (a <= -180) a += 360; return a; };
+  const phi0 = nrm((c < 0 ? 180 : 0) - d * 90);
+  const qSlope = limAt0(f.Qn, f.den.concat([0]));   // lim Q(w)/w = Q'(0)
+  let exitAng = d > 0 ? nrm(phi0 + 180) : d < 0 ? phi0
+    : (isFinite(qSlope) && Math.abs(qSlope) > 1e-12 ? Math.sign(qSlope) * 90 : null);
+  if (exitAng === null) {                           // wyraz liniowy znika: licz numerycznie
+    const w0 = 1e-4, g1 = Gof(C(0, w0)), g2 = Gof(C(0, 2 * w0));
+    exitAng = nrm(carg(C(g2.re - g1.re, g2.im - g1.im)) * D2);
+  }
+  const exitKind = d > 0 ? 'do środka' : d < 0 ? 'od środka' : 'prostopadle';
   const P0 = pev(f.Pn, 0), Q0 = pev(f.Qn, 0), den0 = pev(f.den, 0);
   const start = Math.abs(den0) > 1e-300 ? C(P0 / den0, Q0 / den0) : null;
 
@@ -137,7 +159,8 @@ export function nyquistPlan() {
   const stages = buildStages({ nu, mu, d, c, relDeg, start, asym, bigArc });
 
   return { ...f, nu, mu, d, c, degN, degD, relDeg, exact,
-           asym, qLim, start, bigArc, reCrossAll, unitAll, stages,
+           asym, qLim, phi0, qSlope, exitAng, exitKind,
+           start, bigArc, reCrossAll, unitAll, stages,
            nStages: stages.length };
 }
 

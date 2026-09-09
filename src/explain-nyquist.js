@@ -191,6 +191,50 @@ export const ENTRIES = {
       result: p.bigArc? 'punkt ( '+fx(p.bigArc.re)+' , j'+fx(p.bigArc.im)+' )' : 'niewłaściwa transmitancja',
       note:'Dla n = m łuk odwzorowuje się w punkt bₘ/aₙ na osi rzeczywistej, a nie w zero. Przy opóźnieniu transportowym e^(−T_d s) na tym łuku Re s > 0, więc czynnik ten dodatkowo tłumi — punkt pozostaje w zerze.'};
   },
+  'nq-phi0'(A, d, ctx) {
+    const p = A.plan;
+    return {kind:'Hodograf', title:'φ₀ — kąt położenia startu hodografu',
+      what:'Argument punktu, od którego zaczyna się hodograf: w którą stronę od początku układu leży ten punkt. Dokładnie ta sama liczba, od której startuje charakterystyka fazowa Bodego — Bode rysuje przecież arg Gₒ(jω), a to jest jego wartość dla ω → 0. Uwaga: to NIE jest kierunek, w którym krzywa z tego punktu wychodzi (patrz „kąt wyjścia”).',
+      formula:['w otoczeniu zera:  Gₒ(jω) ≈ c·(jω)^(−d),  d = ν − μ',
+               '1/j = −j = e^(−j90°)   ⇒   φ₀ = arg c − d·90°',
+               'arg c = 0° dla c > 0,  180° dla c < 0'],
+      steps:[['d = ν − μ', fmt(p.d)], ['c', fx(p.c)],
+             ['arg c', (p.c<0? '180°  (c ujemne)' : '0°  (c dodatnie)')],
+             ['−d·90°', fmt(-p.d*90,4)+'°'],
+             ['φ₀', fmt(p.phi0,4)+'°'],
+             ['start fazy Bodego', fmt(p.phi0,4)+'°  (ta sama liczba)']],
+      result:'φ₀ = '+fmt(p.phi0,4)+'°',
+      note:'Znak c zbiera w sobie wszystkie źródła przesunięcia o 180°: ujemne K oraz każdy RZECZYWISTY biegun lub zero w prawej półpłaszczyźnie, bo czynnik (jω − p) w ω = 0 równa się −p, czyli dla p > 0 jest liczbą ujemną. Para zespolona sprzężona w prawej półpłaszczyźnie daje (−z)(−z̄) = |z|² > 0, więc nie wnosi nic. To jest właśnie „minus wyciągnięty z czynników” z rozkładu Bodego: (s − 3) = −3·(1 − s/3).'};
+  },
+  'nq-exit'(A, d, ctx) {
+    const p = A.plan;
+    const rows = p.d !== 0
+      ? [['moduł |Gₒ| = |c|·ω^(−d)', p.d>0? 'maleje, gdy ω rośnie' : 'rośnie, gdy ω rośnie'],
+         ['dGₒ/dω = e^(jφ₀)·(−d·|c|·ω^(−d−1))', p.d>0? 'czynnik rzeczywisty UJEMNY ⇒ obrót o 180°' : 'czynnik rzeczywisty DODATNI ⇒ bez obrotu'],
+         ['φ₀', fmt(p.phi0,4)+'°'],
+         ['kąt wyjścia = φ₀ '+(p.d>0?'+ 180°':'+ 0°'), fmt(p.exitAng,4)+'°']]
+      : [['P(ω) parzysta ⇒ P′(0)', '0'],
+         ['Q(ω) nieparzysta ⇒ Q′(0)', fx(p.qSlope)],
+         ['dGₒ/dω = j·Q′(0)', 'liczba czysto urojona'],
+         ['kąt wyjścia', fmt(p.exitAng,4)+'°  ('+(p.exitAng>0?'w górę':'w dół')+')']];
+    return {kind:'Hodograf', title:'Kąt wyjścia hodografu przy ω → 0⁺',
+      what:'Kierunek, w którym krzywa posuwa się przy rosnącej pulsacji — styczna do hodografu w jego początku. To co innego niż φ₀: φ₀ mówi, GDZIE leży punkt startowy, a kąt wyjścia — DOKĄD od niego jedziemy. Dla układu z astatyzmem te dwa kąty różnią się dokładnie o 180°.',
+      formula: p.d!==0
+        ? ['Gₒ(jω) ≈ |c|·ω^(−d)·e^(jφ₀)   — argument stały, moduł zmienny',
+           'dGₒ/dω = e^(jφ₀) · d/dω[ |c|·ω^(−d) ] = e^(jφ₀)·( −d·|c|·ω^(−d−1) )',
+           'mnożenie przez liczbę rzeczywistą ujemną = obrót o 180°',
+           'kąt wyjścia = φ₀ + 180°   (dla d > 0)']
+        : ['Gₒ(jω) ≈ c·(1 + jω·Σ),  Σ = Στ_z − Στ_p',
+           'dGₒ/dω|₀ = j·c·Σ = j·Q′(0)   — czysto urojona',
+           'kąt wyjścia = ±90°, znak jak znak Q′(0)'],
+      steps: rows,
+      result: fmt(p.exitAng,4)+'°'+(p.d>0? '  (φ₀ + 180°)' : ''),
+      note: p.d>0
+        ? 'Geometrycznie: przy d > 0 początek hodografu leży nieskończenie daleko na półprostej o kącie φ₀ i sunie po niej DO ŚRODKA. Jadąc po promieniu w stronę zera, ma się wektor prędkości dokładnie przeciwny do wektora położenia — i to jest całe źródło tych 180°, żadna dodatkowa reguła. Suma stałych czasowych przesuwa tylko asymptotę w bok, kierunku nie zmienia.'
+        : (p.d<0
+          ? 'Przy d < 0 moduł rośnie z ω, więc punkt UCIEKA od zera wzdłuż tej samej półprostej — wektor prędkości jest równoległy do wektora położenia i przesunięcia o 180° nie ma.'
+          : 'Przy d = 0 moduł jest skończony, więc powyższe rozumowanie nie działa. Decyduje parzystość: P jest funkcją parzystą (pochodna w zerze znika), Q nieparzystą — dlatego krzywa opuszcza punkt startowy prostopadle do promienia. W postaci czasowej Q′(0) = k_p·(Στ_z − Στ_p); to ta sama suma stałych czasowych, która przy ν = 1 wyznacza położenie asymptoty pionowej.')};
+  },
   'nq-reldeg'(A, d, ctx) {
     const p = A.plan;
     return {kind:'Hodograf', title:'Kąt dojścia hodografu do początku układu',
