@@ -1,5 +1,5 @@
 import { C, cabs, carg, cdiv, cexp, cmul, csub } from './complex.js';
-import { fullRoots, polyRoots, polymul } from './poly.js';
+import { fullRoots, polyRoots, polymul, polyvalC } from './poly.js';
 
 /* ===================== application state ===================== */
 export const S={
@@ -113,6 +113,24 @@ export function charPolyOfK(){
 
 /* ---- minimal polynomial arithmetic in K, highest power first ---- */
 
+/* Durand-Kerner rozsypuje pierwiastek m-krotny w chmurke punktow z niezerowa
+   czescia urojona: blad m-krotnego pierwiastka rosnie jak eps^(1/m), wiec juz
+   dla potrojnego siega 1e-5. Bez tego (s+1)^3 wchodzilo do panelu jako trzy
+   pary sprzezone, czyli wielomian szostego stopnia zamiast trzeciego.
+   Test jest residualny, nie progowy: czesc urojona ma sens tylko wtedy, gdy
+   realnie zmniejsza |p(z)| wzgledem samej czesci rzeczywistej. */
+function snapReal(roots, coeffs){
+  return roots.map(r=>{
+    if(Math.abs(r.im)<1e-12) return r;
+    // Samo residuum nie wystarcza: gdy w tym samym miejscu osi siedzi inny
+    // pierwiastek, p(Re r) zeruje sie takze dla pary naprawde zespolonej.
+    // Stad dodatkowy warunek: rozrzut moze byc tylko rzedu bledu solvera.
+    if(Math.abs(r.im) > 0.01*(1+Math.abs(r.re))) return r;
+    const withIm=cabs(polyvalC(coeffs,r)), onAxis=cabs(polyvalC(coeffs,C(r.re,0)));
+    return onAxis <= withIm*1e3 ? C(r.re,0) : r;
+  });
+}
+
 export function adoptTF(Ndesc,Ddesc){
   let N=Ndesc.slice(), D=Ddesc.slice();
   while(N.length>1 && Math.abs(N[0])<1e-12) N.shift();
@@ -123,8 +141,8 @@ export function adoptTF(Ndesc,Ddesc){
   const Kval = leadD!==0 ? leadN/leadD : 0;
   let Dc=D.slice(), nu=0;
   while(Dc.length>1 && Math.abs(Dc[Dc.length-1])<1e-9){ Dc.pop(); nu++; }
-  const poles = Dc.length>1 ? polyRoots(Dc) : [];
-  const zeros = leadN!==0 ? fullRoots(N) : [];
+  const poles = snapReal(Dc.length>1 ? polyRoots(Dc) : [], Dc);
+  const zeros = snapReal(leadN!==0 ? fullRoots(N) : [], N);
   const mkItems=(arr,kind)=>{
     const items=[], used=new Array(arr.length).fill(false);
     arr.forEach((r,i)=>{

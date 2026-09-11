@@ -7,6 +7,7 @@ import { EXPLAIN, EXP_LABEL, showExp } from './explain.js';
 import { fitFig } from './fig-common.js';
 import { fmt, fx } from './format.js';
 import { K, S, adoptTF, charPolyCoeffs, polyFrom } from './model.js';
+import { parseTF } from './tf-parse.js';
 import { BSTATE, bdFromAnalysis, initBlockDrag, refreshBlock } from './panel-block.js';
 import { renderNyquistPanel } from './panel-nyquist.js';
 import { refreshRouth } from './panel-routh.js';
@@ -87,6 +88,20 @@ $('nuSeg').onclick=e=>{
   [...$('nuSeg').children].forEach(x=>x.setAttribute('aria-pressed', x===b));
   refresh();
 };
+
+/* Transmitancja wpisywana wprost: dowolne wyrażenie wymierne w s, nie tylko
+   lista zer i biegunów. Rozkład na czynniki robi adoptTF, więc po zastosowaniu
+   panel boczny pokazuje pierwiastki wyliczone z wpisanych wielomianów. */
+function applyTypedTF(){
+  const r=parseTF($('tfIn').value);
+  if(r.error){ $('tfErr').textContent=r.error; $('tfIn').classList.add('bad'); return; }
+  if(!adoptTF(r.num, r.den)) return;
+  $('tfErr').textContent=''; $('tfIn').classList.remove('bad');
+  renderPZ(); syncControls(); refresh();
+}
+$('tfApply').onclick=applyTypedTF;
+$('tfIn').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); applyTypedTF(); } });
+$('tfIn').addEventListener('input',()=>{ $('tfIn').classList.remove('bad'); $('tfErr').textContent=''; });
 
 const PRESETS=[
   {t:'10 / [(s+1)(s+2)]', d:'wzorzec z instrukcji — PM 55,9°, GM ∞',
@@ -296,6 +311,15 @@ setTab('analiza');
   ok&=near(A.wc,1.80,0.02,'wc astat');
   ok&=near(A.pm,-13,0.5,'PM astat');
   ok&=near(A.Z,2,0.1,'Z astat');
+  // parser transmitancji: wyrazenie tekstowe -> para wielomianow
+  { const r=parseTF('(s+3)/((s+2)(s+3)(s+4))');
+    ok&=near(r.den.length-1,3,0.1,'parser: stopien mianownika');
+    ok&=near(r.den[1],9,1e-9,'parser: (s+2)(s+3)(s+4)');
+    ok&=near(parseTF('1/s(s+1)').den.length-1,2,0.1,'parser: sasiedztwo wiaze mocniej niz /'); }
+  // (s+1)^3 z wpisanego wielomianu musi dac trzy RZECZYWISTE bieguny,
+  // a nie trzy pary sprzezone z szumu solvera
+  { const r=parseTF('2/(s+1)^3'); adoptTF(r.num,r.den);
+    ok&=near(S.items.filter(i=>Math.abs(i.im)<1e-9).length,3,0.1,'potrojny pierwiastek rzeczywisty'); }
   // 100(s+10)/[s(s+100)(s+1000)] : w_c = 0,01 rad/s, czyli dwie dekady PONIZEJ
   // najnizszej pulsacji zalomu -- pasmo przemiatania musi po nie siegnac
   Object.assign(S,{Kmag:100,Kneg:false,nu:1,Td:0,items:[{kind:'z',re:-10,im:0,on:true},

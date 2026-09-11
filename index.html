@@ -90,6 +90,14 @@
         <div id="verdictBox"></div>
       </div>
     </div>
+    <div class="tf-entry">
+      <label for="tfIn">wpisz G<sub>o</sub>(s) =</label>
+      <input type="text" id="tfIn" spellcheck="false" autocomplete="off"
+             placeholder="(s+3)/((s+2)(s+3)(s+4))"
+             title="Dowolne wyrażenie wymierne zmiennej s: nawiasy, + − * / ^, przecinek lub kropka dziesiętna. Mnożenie przez sąsiedztwo wiąże mocniej niż ukośnik, więc 1/s(s+1) znaczy 1/[s(s+1)].">
+      <button id="tfApply" type="button">Zastosuj</button>
+      <span class="tf-err" id="tfErr"></span>
+    </div>
     <dl class="readout" id="readout"></dl>
   </section>
 

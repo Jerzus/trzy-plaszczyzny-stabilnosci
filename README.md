@@ -14,7 +14,9 @@ karty w stylu kart przeglądarki:
   `1 + G_o(s)` wzdłuż całego konturu, więc działa też dla układów nieminimalnofazowych,
   z biegunami w prawej półpłaszczyźnie i z opóźnieniem transportowym. Hodograf jest
   rozpisany tak, jak wyprowadza się go na kartce: rozkład `G_o(jω)` na `P(ω)` i `Q(ω)`,
-  podział konturu na etapy i bilans okrążeń punktu `(−1, j0)`.
+  podział konturu na etapy i bilans okrążeń punktu `(−1, j0)`. Transmitancję można
+  złożyć z zer i biegunów w panelu bocznym albo wpisać wprost jako wyrażenie
+  wymierne, np. `(s+3)/((s+2)(s+3)(s+4))`.
 - **Routh–Hurwitz** — warunek konieczny (znaki współczynników) i pełna tablica Routha
   dla bieżącego `K`, z krzyżową kontrolą względem `Z` z konturu Nyquista; oraz
   przedziały `K`, dla których układ zamknięty jest stabilny, wyznaczone symbolicznie
